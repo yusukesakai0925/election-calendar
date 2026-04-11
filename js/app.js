@@ -16,7 +16,7 @@ let dietData = [];
 
 // ガントチャートの表示開始月オフセット（0 = 今月）
 let ganttOffset = 0;
-const GANTT_MONTHS = 6; // 一度に表示する月数
+const GANTT_MONTHS = 12; // 一度に表示する月数
 
 // ===== データ読み込み =====
 async function loadData() {
@@ -348,6 +348,16 @@ function renderElectionCard(el) {
             </div>` : ''}
         </div>
         ${el.note ? `<div class="card-note">${el.note}</div>` : ''}
+        ${(el.seats || el.candidateCount) ? `
+          <div class="election-meta">
+            ${el.seats ? `<span class="meta-item">定数 <strong>${el.seats}</strong>人</span>` : ''}
+            ${el.candidateCount ? `<span class="meta-item">候補者 <strong>${el.candidateCount}</strong>人</span>` : ''}
+          </div>` : ''}
+        ${el.competitiveness ? `
+          <div class="competitiveness-wrap">
+            <span class="competitiveness-badge level-${el.competitiveness.level || 'unknown'}">${el.competitiveness.label || '?'}</span>
+            ${el.competitiveness.note ? `<span class="competitiveness-note">${el.competitiveness.note}</span>` : ''}
+          </div>` : ''}
       </div>
       <div class="card-right">
         ${renderCardCountdown(el)}
@@ -580,11 +590,17 @@ function renderGantt() {
         if (barStart <= barEnd && span.start <= mEnd && span.end >= mStart) {
           // セル内での開始・終了の割合（%）
           const leftPct  = ((barStart - mStart) / 86400000 / mDays * 100).toFixed(2);
-          const rightPct = (((mEnd - barEnd)   / 86400000 + 1) / mDays * 100).toFixed(2);
+          const rightPct = ((mEnd - barEnd)      / 86400000 / mDays * 100).toFixed(2);
           const widthPct = (100 - parseFloat(leftPct) - parseFloat(rightPct)).toFixed(2);
 
+          // 月またぎのとき左右の角丸を制御
+          const isBarStart = span.start >= mStart;
+          const isBarEnd   = span.end   <= mEnd;
+          const rl = isBarStart ? '4px' : '0';
+          const rr = isBarEnd   ? '4px' : '0';
+
           html += `<div class="gantt-bar ${levelClass}${isUnc ? ' uncertain' : ''}"
-            style="left:${leftPct}%;width:${widthPct}%;min-width:4px;"
+            style="left:${leftPct}%;width:${widthPct}%;min-width:4px;border-radius:${rl} ${rr} ${rr} ${rl};"
             title="${el.name}（${getAnnouncementLabel(el)} 〜 ${getElectionDayLabel(el)}）">`;
 
           // 公示日マーカー（このセル内に公示日があれば）
@@ -640,9 +656,13 @@ function renderGantt() {
         const barStart = sOpen  < mStart ? mStart : sOpen;
         const barEnd   = sClose > mEnd   ? mEnd   : sClose;
         const leftPct  = ((barStart - mStart) / 86400000 / mDays * 100).toFixed(2);
-        const rightPct = (((mEnd - barEnd)    / 86400000 + 1) / mDays * 100).toFixed(2);
+        const rightPct = ((mEnd - barEnd)      / 86400000 / mDays * 100).toFixed(2);
         const widthPct = (100 - parseFloat(leftPct) - parseFloat(rightPct)).toFixed(2);
-        html += `<div class="gantt-diet-bar" style="left:${leftPct}%;width:${widthPct}%;min-width:4px"></div>`;
+        const isDietStart = sOpen  >= mStart;
+        const isDietEnd   = sClose <= mEnd;
+        const drl = isDietStart ? '3px' : '0';
+        const drr = isDietEnd   ? '3px' : '0';
+        html += `<div class="gantt-diet-bar" style="left:${leftPct}%;width:${widthPct}%;min-width:4px;border-radius:${drl} ${drr} ${drr} ${drl}"></div>`;
       }
 
       if (isTodayMonth) {

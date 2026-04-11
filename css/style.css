@@ -401,6 +401,44 @@ body {
   color: var(--text-muted);
 }
 
+/* 議席・候補者数 */
+.election-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+.meta-item {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.meta-item strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* 当選難度バッジ */
+.competitiveness-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.competitiveness-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.competitiveness-badge.level-high   { background: #fdecea; color: #c0392b; }
+.competitiveness-badge.level-medium { background: #fef9e7; color: #d35400; }
+.competitiveness-badge.level-low    { background: #eafaf1; color: #1e6e3a; }
+.competitiveness-badge.level-unknown { background: #f4f6f9; color: #6c757d; }
+.competitiveness-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 .card-right { text-align: right; }
 .card-countdown {
   font-size: 1.5rem;
@@ -629,7 +667,7 @@ body {
 }
 
 .gantt-cell {
-  padding: 6px 2px;
+  padding: 6px 0;
   vertical-align: middle;
   position: relative;
   height: 44px;

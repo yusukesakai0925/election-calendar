@@ -56,8 +56,23 @@ ELECTIONS_SCHEMA = """
   "certainty": "confirmed / estimated / unknown",
   "status": "scheduled / confirmed / completed / cancelled",
   "isUnexpected": true または false（補欠選挙・急選は true、定期選挙は false）,
+  "seats": 定数（整数またはnull）,
+  "candidateCount": 現時点の立候補者数（整数またはnull、不明ならnull）,
   "source": "情報源URL",
   "note": "補足"
+}
+"""
+
+COMPETITIVENESS_SCHEMA = """
+{
+  "id": "選挙ID",
+  "seats": 定数（整数またはnull）,
+  "candidateCount": 現時点の立候補者数（整数またはnull）,
+  "competitiveness": {
+    "level": "high / medium / low / unknown",
+    "label": "激戦 / やや激戦 / 優勢 / 不明",
+    "note": "一行で根拠を説明（例: 現職と新人の一騎打ちで拮抗）"
+  }
 }
 """
 
@@ -306,6 +321,99 @@ def update_diet(client: anthropic.Anthropic, existing: dict) -> dict:
     return updated
 
 
+# ===== D. 当選難度・議席・候補者数 =====
+
+def update_competitiveness(client: anthropic.Anthropic, existing: dict) -> dict:
+    """選挙ごとに議席数・候補者数・当選難度を web_search で調べて付与する"""
+    today_str = datetime.now(JST).strftime("%Y年%m月%d日")
+
+    # 今後の選挙（completed 以外）を対象
+    targets = [e for e in existing.get("elections", [])
+               if e.get("status") not in ("completed", "cancelled")]
+    if not targets:
+        print("  対象選挙なし")
+        return existing
+
+    target_list = json.dumps(
+        [{"id": e["id"], "name": e["name"]} for e in targets],
+        ensure_ascii=False, indent=2
+    )
+
+    prompt = f"""今日は{today_str}です。以下の日本の選挙について、web_search で各選挙の定数・候補者数・当選難度を調べてください。
+
+【対象選挙】
+{target_list}
+
+【各選挙について調べること】
+1. 定数（議席数）
+2. 立候補者数（現時点で判明している分。未発表ならnull）
+3. 当選難度（激戦か否か）
+   - high: 激戦（接戦・新人複数・現職苦戦など）
+   - medium: やや激戦（一定の競争あり）
+   - low: 優勢（現職が圧倒的に有利、または無投票の可能性）
+   - unknown: 情報不足
+
+以下スキーマの **JSONコードブロック（```json ... ```）のみ** 出力してください。説明文は不要です。
+対象選挙すべてを配列で出力してください。情報が見つからない場合もnullを入れて出力してください。
+
+{COMPETITIVENESS_SCHEMA}
+
+出力例（配列形式）:
+```json
+[
+  {{
+    "id": "example-2026",
+    "seats": 4,
+    "candidateCount": 6,
+    "competitiveness": {{
+      "level": "high",
+      "label": "激戦",
+      "note": "定数4に対し6人が立候補、現職2人に新人4人が挑む構図"
+    }}
+  }}
+]
+```
+"""
+    print("  🔍 当選難度・議席・候補者数を調査中…")
+    result = call_claude(client, prompt, use_search=True, max_uses=8)
+    if not result:
+        print("  ⚠️ Claude が空文字を返しました")
+        return existing
+
+    print(f"  Claude 応答（先頭300字）: {result[:300]}")
+    try:
+        items = extract_json_from_text(result)
+        if isinstance(items, dict):
+            items = [items]
+        if not isinstance(items, list):
+            raise ValueError(f"listではありません: {type(items)}")
+    except Exception as e:
+        print(f"  ⚠️ パースエラー: {e}")
+        print(f"  Claude 全応答: {result[:1000]}")
+        return existing
+
+    id_map = {e["id"]: e for e in existing.get("elections", [])}
+    updated_count = 0
+    for item in items:
+        eid = item.get("id")
+        if not eid or eid not in id_map:
+            continue
+        el = id_map[eid]
+        if item.get("seats") is not None:
+            el["seats"] = item["seats"]
+        if item.get("candidateCount") is not None:
+            el["candidateCount"] = item["candidateCount"]
+        if item.get("competitiveness"):
+            el["competitiveness"] = item["competitiveness"]
+        updated_count += 1
+
+    print(f"  ✅ {updated_count} 件を更新")
+    result_data = dict(existing)
+    result_data["elections"] = list(id_map.values())
+    result_data["lastUpdated"] = datetime.now(JST).isoformat()
+    return result_data
+
+
 # ===== メイン =====
 
 def main():
@@ -326,6 +434,12 @@ def main():
 
     save_json(ELECTIONS_FILE, elections)
     print(f"\n✅ 選挙データ合計: {len(elections.get('elections', []))} 件")
+
+    # 当選難度・議席・候補者数
+    print("\n[D] 当選難度・議席・候補者数を調査")
+    time.sleep(20)
+    elections = update_competitiveness(client, elections)
+    save_json(ELECTIONS_FILE, elections)
 
     # 国会日程
     print("\n[C] 国会日程を更新")
