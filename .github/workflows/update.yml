@@ -1,0 +1,43 @@
+name: 選挙データ自動更新
+
+on:
+  schedule:
+    # 毎朝 6:00 JST (= 21:00 UTC)
+    - cron: '0 21 * * *'
+  workflow_dispatch:  # 手動実行も可能
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Python 3.11 セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 依存パッケージをインストール
+        run: pip install -r scripts/requirements.txt
+
+      - name: 選挙データを更新
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python scripts/update.py
+
+      - name: 変更をコミット・プッシュ
+        run: |
+          git config user.name  "election-bot"
+          git config user.email "election-bot@users.noreply.github.com"
+          git add data/elections.json data/diet.json
+          if git diff --cached --quiet; then
+            echo "変更なし。コミットをスキップします。"
+          else
+            git commit -m "chore: 選挙データ自動更新 $(date +'%Y-%m-%d')"
+            git push
+          fi

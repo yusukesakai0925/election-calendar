@@ -1,0 +1,435 @@
+/* ===== リセット・基本 ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --national:   #c0392b;
+  --national-bg:#fdf0ef;
+  --pref:       #1a5276;
+  --pref-bg:    #eaf2fb;
+  --city:       #1e8449;
+  --city-bg:    #eafaf1;
+  --town:       #9b59b6;
+  --town-bg:    #f5eef8;
+  --unexpected: #e67e22;
+  --unexpected-bg: #fef9e7;
+
+  --text:       #1a1a2e;
+  --text-muted: #6c757d;
+  --bg:         #f4f6f9;
+  --surface:    #ffffff;
+  --border:     #dee2e6;
+  --accent:     #2c3e7a;
+
+  --radius: 10px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+body {
+  font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ===== ヘッダー ===== */
+.site-header {
+  background: var(--accent);
+  color: #fff;
+  padding: 14px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.site-header h1 { font-size: 1.2rem; font-weight: 700; }
+.last-updated { font-size: 0.75rem; opacity: 0.7; white-space: nowrap; }
+
+/* ===== ヒーロー（カウントダウン） ===== */
+.hero {
+  background: linear-gradient(135deg, var(--accent) 0%, #1a3a6e 100%);
+  padding: 36px 20px;
+  color: #fff;
+}
+.hero-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.countdown-card {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: var(--radius);
+  padding: 28px 36px;
+  text-align: center;
+  min-width: 280px;
+  backdrop-filter: blur(8px);
+}
+.countdown-label {
+  font-size: 0.8rem;
+  opacity: 0.75;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.countdown-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+.countdown-number-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.countdown-days {
+  font-size: 5rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.countdown-unit { font-size: 1.6rem; font-weight: 700; }
+.countdown-detail { font-size: 0.88rem; opacity: 0.85; }
+.countdown-certainty {
+  font-size: 0.75rem;
+  margin-top: 6px;
+  opacity: 0.65;
+}
+
+/* 直近の選挙サブカード */
+.upcoming-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+.mini-card {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: default;
+  transition: background 0.2s;
+}
+.mini-card:hover { background: rgba(255,255,255,0.18); }
+.mini-card-left { flex: 1; }
+.mini-card-name { font-size: 0.95rem; font-weight: 600; }
+.mini-card-date { font-size: 0.78rem; opacity: 0.75; margin-top: 2px; }
+.mini-card-days {
+  font-size: 1.4rem;
+  font-weight: 800;
+  white-space: nowrap;
+  margin-left: 16px;
+}
+.mini-card-days span { font-size: 0.8rem; font-weight: 400; }
+.mini-badge {
+  font-size: 0.65rem;
+  padding: 2px 7px;
+  border-radius: 20px;
+  margin-left: 8px;
+  background: rgba(255,255,255,0.25);
+  vertical-align: middle;
+}
+.mini-badge.unexpected { background: var(--unexpected); }
+
+/* ===== フィルター ===== */
+.filters {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  position: sticky;
+  top: 53px;
+  z-index: 90;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.filter-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.filter-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+.filter-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.filter-btn {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  font-size: 0.82rem;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.15s;
+}
+.filter-btn:hover { background: var(--bg); }
+.filter-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+.unexpected-btn.active { background: var(--unexpected); border-color: var(--unexpected); }
+.show-completed-label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+}
+
+/* ===== メインレイアウト ===== */
+.main-content {
+  max-width: 1200px;
+  margin: 24px auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ===== タイムライン ===== */
+.timeline-section h2 { display: none; }
+
+.month-group { margin-bottom: 32px; }
+.month-label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+}
+
+.election-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border-left: 5px solid var(--border);
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 16px;
+  align-items: start;
+  transition: box-shadow 0.2s;
+}
+.election-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.13); }
+
+.election-card.national    { border-left-color: var(--national); }
+.election-card.pref        { border-left-color: var(--pref); }
+.election-card.city        { border-left-color: var(--city); }
+.election-card.town        { border-left-color: var(--town); }
+.election-card.unexpected  { border-left-color: var(--unexpected); }
+.election-card.completed   { opacity: 0.5; }
+
+.card-main { }
+.card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.level-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+.level-badge.national  { background: var(--national-bg); color: var(--national); }
+.level-badge.pref      { background: var(--pref-bg);     color: var(--pref); }
+.level-badge.city      { background: var(--city-bg);     color: var(--city); }
+.level-badge.town      { background: var(--town-bg);     color: var(--town); }
+.level-badge.unexpected{ background: var(--unexpected-bg); color: var(--unexpected); }
+
+.unexpected-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: var(--unexpected);
+  color: #fff;
+}
+
+.card-dates {
+  margin-top: 8px;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.date-item { }
+.date-item-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+.date-item-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 1px;
+}
+.date-uncertain { color: var(--text-muted); font-style: italic; }
+.certainty-note {
+  font-size: 0.72rem;
+  color: var(--unexpected);
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.card-note {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.card-right { text-align: right; }
+.card-countdown {
+  font-size: 1.5rem;
+  font-weight: 800;
+  white-space: nowrap;
+  color: var(--accent);
+}
+.card-countdown.urgent { color: var(--national); }
+.card-countdown-label { font-size: 0.72rem; color: var(--text-muted); }
+.card-countdown-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  white-space: nowrap;
+}
+.completed-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ===== 国会サイドバー ===== */
+.diet-sidebar {
+  position: sticky;
+  top: 110px;
+}
+.sidebar-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+
+.session-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.session-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--accent);
+}
+.session-type-badge {
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: #eaf0fa;
+  color: var(--accent);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.session-dates { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.session-date-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+}
+.session-date-label { color: var(--text-muted); }
+.session-date-value { font-weight: 600; }
+.session-active {
+  font-size: 0.72rem;
+  color: #1e8449;
+  font-weight: 700;
+  background: #eafaf1;
+  padding: 3px 10px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 10px;
+}
+.session-ended {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  background: var(--bg);
+  padding: 3px 10px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
+.milestones { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 6px; }
+.milestone-label { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; }
+.milestone-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--border);
+}
+.milestone-item:last-child { border-bottom: none; }
+.milestone-date { color: var(--text-muted); }
+.milestone-name { font-weight: 500; }
+
+/* ===== 共通 ===== */
+.loading-text { color: var(--text-muted); font-style: italic; padding: 20px 0; }
+.no-elections { color: var(--text-muted); padding: 40px 0; text-align: center; }
+
+/* ===== フッター ===== */
+.site-footer {
+  background: var(--accent);
+  color: rgba(255,255,255,0.6);
+  text-align: center;
+  padding: 20px;
+  font-size: 0.78rem;
+  margin-top: 60px;
+}
+
+/* ===== レスポンシブ ===== */
+@media (max-width: 900px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
+  .diet-sidebar { position: static; }
+  .hero-inner { flex-direction: column; }
+  .upcoming-mini { flex-direction: row; overflow-x: auto; }
+  .mini-card { min-width: 200px; }
+}
+@media (max-width: 600px) {
+  .countdown-card { min-width: auto; width: 100%; padding: 20px; }
+  .countdown-days { font-size: 4rem; }
+  .header-inner { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .election-card { grid-template-columns: 1fr; }
+  .card-right { text-align: left; }
+}

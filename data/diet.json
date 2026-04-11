@@ -1,0 +1,18 @@
+{
+  "lastUpdated": "2026-04-11T06:00:00+09:00",
+  "sessions": [
+    {
+      "id": "221st-special",
+      "name": "第221回国会（特別国会）",
+      "type": "特別国会",
+      "openDate": "2026-02-18",
+      "closeDate": "2026-07-17",
+      "closeDateUncertain": false,
+      "milestones": [
+        { "date": "2026-02-18", "label": "高市早苗 第105代内閣総理大臣 指名" },
+        { "date": "2026-03-31", "label": "2026年度予算成立（予定）" },
+        { "date": "2026-07-17", "label": "会期末" }
+      ]
+    }
+  ]
+}
