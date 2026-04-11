@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-11T18:09:47.830401+09:00",
+  "lastUpdated": "2026-04-11T18:32:27.934516+09:00",
   "elections": [
     {
       "id": "toyonaka-mayor-2026",
@@ -308,6 +308,44 @@
       "isUnexpected": true,
       "source": "公職選挙法第33条の2（春の補選）",
       "note": "2026年春の統一補欠選挙"
+    },
+    {
+      "id": "okinawa-pref-assembly-uruma-2026",
+      "name": "沖縄県議会議員補欠選挙（うるま市選挙区）",
+      "type": "県議選",
+      "level": "pref",
+      "region": "うるま市",
+      "prefecture": "沖縄県",
+      "announcementDate": null,
+      "announcementDateLabel": "告示日未定",
+      "electionDay": "2026-09-13",
+      "electionDayEarliest": null,
+      "electionDayLatest": null,
+      "electionDayLabel": "2026年9月13日（同日に沖縄県知事選と投開票）",
+      "certainty": "estimated",
+      "status": "scheduled",
+      "isUnexpected": true,
+      "source": "琉球新報 2026年03月23日",
+      "note": "沖縄県知事選と同日投開票予定"
+    },
+    {
+      "id": "okinawa-pref-assembly-shimajiri-nanjo-2026",
+      "name": "沖縄県議会議員補欠選挙（島尻・南城市選挙区）",
+      "type": "県議選",
+      "level": "pref",
+      "region": "南城市・島尻郡",
+      "prefecture": "沖縄県",
+      "announcementDate": null,
+      "announcementDateLabel": "告示日未定",
+      "electionDay": "2026-09-13",
+      "electionDayEarliest": null,
+      "electionDayLatest": null,
+      "electionDayLabel": "2026年9月13日（同日に沖縄県知事選と投開票）",
+      "certainty": "estimated",
+      "status": "scheduled",
+      "isUnexpected": true,
+      "source": "琉球新報 2026年03月23日",
+      "note": "沖縄県知事選と同日投開票予定"
     }
   ]
 }
