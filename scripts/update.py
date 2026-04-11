@@ -6,10 +6,10 @@
   レートリミット対策のため Claude 呼び出しを最小限にする。
 
   A. BeautifulSoup による直接パース（Claude 不使用）
-     - Wikipedia「YYYY年日本の補欠選挙」のテーブルを直接解析
+     - Wikipedia「YYYY年日本の補欠選挙」のテーブルを直接解析（wikitable がある年のみ有効）
 
-  B. Claude API web_search（軽量・2回のみ）
-     - 予定選挙（知事選・統一地方選・参院選など）
+  B. Claude API web_search（2回のみ）
+     - 定期選挙（知事選・統一地方選・参院選など）＋補欠選挙・急選
      - 国会日程
 """
 
@@ -57,8 +57,8 @@ ELECTIONS_SCHEMA = """
   "electionDayLabel": "投票日の表示文字列",
   "certainty": "confirmed / estimated / unknown",
   "status": "scheduled / confirmed / completed / cancelled",
-  "isUnexpected": true または false,
-  "source": "情報源",
+  "isUnexpected": true または false（補欠選挙・急選は true、定期選挙は false）,
+  "source": "情報源URL",
   "note": "補足"
 }
 """
@@ -74,11 +74,6 @@ DIET_SCHEMA = """
   "milestones": [{ "date": "YYYY-MM-DD", "label": "イベント名" }]
 }
 """
-
-# 都道府県→prefecture 変換用
-PREF_LEVELS = {
-    "国会": "national", "衆議院": "national", "参議院": "national",
-}
 
 
 # ===== ユーティリティ =====
@@ -97,9 +92,12 @@ def save_json(path: Path, data: dict):
 
 
 def extract_json_from_text(text: str):
+    """テキストから JSON 配列または JSON オブジェクトを抽出する"""
+    # コードブロック内
     m = re.search(r"```(?:json)?\s*([\s\S]+?)```", text)
     if m:
         return json.loads(m.group(1).strip())
+    # 生 JSON
     m = re.search(r"(\[[\s\S]+\]|\{[\s\S]+\})", text)
     if m:
         return json.loads(m.group(1).strip())
@@ -226,11 +224,9 @@ def parse_wikipedia_bosen(html: str, year: int) -> list:
         if len(rows) < 2:
             continue
 
-        # ヘッダー行からカラム名を取得
         headers = [th.get_text(strip=True) for th in rows[0].find_all(["th", "td"])]
         print(f"  テーブルヘッダー: {headers[:8]}")
 
-        # カラムインデックスを推定
         col_date   = next((i for i, h in enumerate(headers)
                            if re.search(r"投票日|選挙日|日付", h)), 0)
         col_region = next((i for i, h in enumerate(headers)
@@ -291,65 +287,103 @@ def update_from_wikipedia(existing: dict) -> dict:
         if not html:
             continue
         parsed = parse_wikipedia_bosen(html, y)
-        print(f"  → {len(parsed)} 件パース")
+        print(f"  → {len(parsed)} 件パース（wikitableなしの場合は0件）")
         results.extend(parsed)
         time.sleep(2)
 
     return merge_elections(existing, results, force_unexpected=True)
 
 
-# ===== B. Claude web_search（軽量・2回）=====
+# ===== B. Claude web_search =====
 
-def update_scheduled_elections(client: anthropic.Anthropic,
-                                existing: dict) -> dict:
-    """予定選挙（知事選・統一地方選・参院選など）を web_search で取得"""
+def update_all_elections(client: anthropic.Anthropic, existing: dict) -> dict:
+    """定期選挙＋補欠選挙・急選を web_search で一括取得"""
     today_str = datetime.now(JST).strftime("%Y年%m月%d日")
     existing_ids = [e["id"] for e in existing.get("elections", [])]
 
-    prompt = f"""
-今日は{today_str}です。web_search で日本の今後の選挙日程を調べてください。
+    prompt = f"""今日は{today_str}です。日本の今後の選挙日程を web_search で調べてください。
 
-検索：「知事選 2026 2027 日程」「統一地方選 2027」「参院選 2028」
+【検索してほしいこと】
+1. 「知事選 {datetime.now(JST).year} {datetime.now(JST).year + 1} 日程」
+2. 「統一地方選 {datetime.now(JST).year + 1}」
+3. 「参院選 日程」「衆院選 日程」
+4. 「補欠選挙 {datetime.now(JST).year} 日程」「急選 {datetime.now(JST).year}」
+5. 「市議会 補欠選挙 {datetime.now(JST).strftime('%Y年%m月')}」
 
-既存ID（重複不要）: {json.dumps(existing_ids[:20], ensure_ascii=False)}
+【重要】
+- 直近〜2年以内に実施予定のすべての選挙を網羅してください
+- 補欠選挙・急選は特に漏れなく拾ってください（市議・町議の小規模なものも含む）
+- 既存ID（重複不要）: {json.dumps(existing_ids, ensure_ascii=False)}
 
-以下スキーマのJSON配列のみ出力してください（説明不要）。isUnexpected は false。
+以下スキーマの **JSONコードブロック（```json ... ```）のみ** 出力してください。説明文は不要です。
 
 {ELECTIONS_SCHEMA}
 """
-    print("  🔍 予定選挙を検索中…")
-    result = call_claude(client, prompt, use_search=True, max_uses=4)
+    print("  🔍 定期選挙＋補欠選挙を検索中…")
+    result = call_claude(client, prompt, use_search=True, max_uses=8)
+    if not result:
+        print("  ⚠️ Claude が空文字を返しました")
+        return existing
+    print(f"  Claude 応答（先頭200字）: {result[:200]}")
     try:
         elections = extract_json_from_text(result)
+        if isinstance(elections, dict):
+            elections = [elections]
         if not isinstance(elections, list):
-            raise ValueError()
+            raise ValueError(f"listではありません: {type(elections)}")
         return merge_elections(existing, elections)
     except Exception as e:
         print(f"  ⚠️ パースエラー: {e}")
+        print(f"  Claude 全応答: {result[:1000]}")
         return existing
 
 
 def update_diet(client: anthropic.Anthropic, existing: dict) -> dict:
     """国会日程を web_search で取得"""
     today_str = datetime.now(JST).strftime("%Y年%m月%d日")
+    year = datetime.now(JST).year
 
-    prompt = f"""
-今日は{today_str}です。web_search で現在の国会会期を調べてください。
+    prompt = f"""今日は{today_str}です。現在および直近の国会会期を web_search で調べてください。
 
-検索：「国会 会期 {datetime.now(JST).year} 開会日 閉会日」
+【検索してほしいこと】
+1. 「第{year}回国会 会期 開会日 閉会日」
+2. 「国会 会期 {year} 延長」
 
-以下スキーマのJSON配列のみ出力してください（説明不要）。
+以下スキーマの **JSONコードブロック（```json ... ```）のみ** 出力してください。説明文は不要です。
+現在開会中の国会のみで構いません。
 
 {DIET_SCHEMA}
+
+出力例（必ずこの形式で）:
+```json
+[
+  {{
+    "id": "221st-special",
+    "name": "第221回国会（特別国会）",
+    "type": "特別会",
+    "openDate": "2026-02-18",
+    "closeDate": "2026-07-17",
+    "closeDateUncertain": false,
+    "milestones": []
+  }}
+]
+```
 """
     print("  🔍 国会日程を検索中…")
     result = call_claude(client, prompt, use_search=True, max_uses=3)
+    if not result:
+        print("  ⚠️ Claude が空文字を返しました")
+        return existing
+    print(f"  Claude 応答（先頭300字）: {result[:300]}")
     try:
         sessions = extract_json_from_text(result)
+        if isinstance(sessions, dict):
+            sessions = [sessions]
         if not isinstance(sessions, list):
-            raise ValueError()
+            raise ValueError(f"listではありません: {type(sessions)}")
     except Exception as e:
         print(f"  ⚠️ パースエラー: {e}")
+        print(f"  Claude 全応答: {result[:1000]}")
         return existing
 
     existing_map = {s["id"]: s for s in existing.get("sessions", [])}
@@ -381,16 +415,16 @@ def main():
     print("\n[A] Wikipedia 補欠選挙テーブルを直接パース（Claude不使用）")
     elections = update_from_wikipedia(elections)
 
-    print("\n[B] 予定選挙を web_search で検索")
-    time.sleep(10)
-    elections = update_scheduled_elections(client, elections)
+    print("\n[B] 定期選挙＋補欠選挙を web_search で検索")
+    time.sleep(5)
+    elections = update_all_elections(client, elections)
 
     save_json(ELECTIONS_FILE, elections)
     print(f"\n✅ 選挙データ合計: {len(elections.get('elections', []))} 件")
 
     # 国会日程
     print("\n[C] 国会日程を更新")
-    time.sleep(30)
+    time.sleep(20)
     diet = load_json(DIET_FILE)
     diet = update_diet(client, diet)
     save_json(DIET_FILE, diet)
