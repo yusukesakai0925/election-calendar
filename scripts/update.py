@@ -3,13 +3,12 @@
 選挙カレンダー自動更新スクリプト
 
 【方針】
-  レートリミット対策のため Claude 呼び出しを最小限にする。
+  A. 選挙ドットコム（go2senkyo.com）をスクレイピング（Claude 不使用）
+     - /schedule/{year} のテーブルを直接解析
+     - 全国の市区町村レベルまで網羅
 
-  A. BeautifulSoup による直接パース（Claude 不使用）
-     - Wikipedia「YYYY年日本の補欠選挙」のテーブルを直接解析（wikitable がある年のみ有効）
-
-  B. Claude API web_search（2回のみ）
-     - 定期選挙（知事選・統一地方選・参院選など）＋補欠選挙・急選
+  B. Claude API web_search
+     - 告示日・定数・当選難度など、スクレイピングで取れない詳細情報を補完
      - 国会日程
 """
 
@@ -23,8 +22,22 @@ from pathlib import Path
 
 import anthropic
 import requests
+from bs4 import BeautifulSoup
 
 JST = timezone(timedelta(hours=9))
+
+PREF_CODE_MAP = {
+    "1": "北海道", "2": "青森県", "3": "岩手県", "4": "宮城県", "5": "秋田県",
+    "6": "山形県", "7": "福島県", "8": "茨城県", "9": "栃木県", "10": "群馬県",
+    "11": "埼玉県", "12": "千葉県", "13": "東京都", "14": "神奈川県", "15": "新潟県",
+    "16": "富山県", "17": "石川県", "18": "福井県", "19": "山梨県", "20": "長野県",
+    "21": "岐阜県", "22": "静岡県", "23": "愛知県", "24": "三重県", "25": "滋賀県",
+    "26": "京都府", "27": "大阪府", "28": "兵庫県", "29": "奈良県", "30": "和歌山県",
+    "31": "鳥取県", "32": "島根県", "33": "岡山県", "34": "広島県", "35": "山口県",
+    "36": "徳島県", "37": "香川県", "38": "愛媛県", "39": "高知県", "40": "福岡県",
+    "41": "佐賀県", "42": "長崎県", "43": "熊本県", "44": "大分県", "45": "宮崎県",
+    "46": "鹿児島県", "47": "沖縄県",
+}
 DATA_DIR = Path(__file__).parent.parent / "data"
 ELECTIONS_FILE = DATA_DIR / "elections.json"
 DIET_FILE = DATA_DIR / "diet.json"
@@ -168,6 +181,146 @@ def merge_elections(existing: dict, new_elections: list,
     return result
 
 
+# ===== A. 選挙ドットコム スクレイピング =====
+
+def _derive_level_type(name: str):
+    """選挙名から (level, type) を推定する"""
+    if re.search(r"衆議院|衆院", name):
+        return "national", "衆院選"
+    if re.search(r"参議院|参院", name):
+        return "national", "参院選"
+    if "知事" in name:
+        return "pref", "知事選"
+    if re.search(r"都議|道議|府議|県議", name):
+        return "pref", "県議選"
+    if "市長" in name:
+        return "city", "市長選"
+    if "区長" in name:
+        return "city", "区長選"
+    if "町長" in name:
+        return "town", "町長選"
+    if "村長" in name:
+        return "town", "村長選"
+    if "市議" in name:
+        return "city", "市議選"
+    if "区議" in name:
+        return "city", "区議選"
+    if "町議" in name:
+        return "town", "町議選"
+    if "村議" in name:
+        return "town", "村議選"
+    return "city", "その他"
+
+
+def _derive_region(name: str, prefecture: str) -> str:
+    """選挙名と都道府県から地域名を推定する"""
+    if not prefecture:
+        return "全国"
+    # 市区町村名を選挙名の先頭部分から抽出
+    for suffix in ["市長", "区長", "町長", "村長", "市議", "区議", "町議", "村議"]:
+        if suffix in name:
+            idx = name.index(suffix)
+            city_name = name[:idx] + suffix[0]  # 例: "前橋" + "市" = "前橋市"
+            if city_name:
+                return prefecture + city_name
+            break
+    # 都道府県レベル（知事選・県議選など）はそのまま
+    return prefecture
+
+
+def scrape_go2senkyo(existing: dict) -> dict:
+    """選挙ドットコムの /schedule/{year} をスクレイピングして選挙データを取得"""
+    today = datetime.now(JST).date()
+    year = today.year
+    new_elections = []
+
+    for y in [year, year + 1]:
+        url = f"https://go2senkyo.com/schedule/{y}"
+        print(f"  🌐 {url}")
+        html = fetch_url(url)
+        if not html:
+            continue
+        time.sleep(2)  # サーバー負荷軽減
+
+        soup = BeautifulSoup(html, "lxml")
+        table = soup.find("table", class_="m_schedule_tab_table")
+        if not table:
+            print(f"  ⚠️ テーブルが見つかりません ({y}年)")
+            continue
+
+        current_date = None
+        count = 0
+        for row in table.find("tbody").find_all("tr"):
+            cells = row.find_all("td")
+            if len(cells) < 2:
+                continue
+
+            # 投票日（circle_inner が存在する行だけ日付を更新）
+            circle = cells[0].find("div", class_="circle_inner")
+            if circle:
+                raw = circle.get_text(strip=True)
+                try:
+                    current_date = datetime.strptime(raw, "%Y/%m/%d").date()
+                except ValueError:
+                    pass
+
+            if not current_date:
+                continue
+
+            # 選挙名・go2senkyo内部ID
+            a_tag = cells[1].find("a")
+            if not a_tag:
+                continue
+            name = a_tag.get_text(strip=True)
+            href = a_tag.get("href", "")
+            senkyo_id = href.rstrip("/").split("/")[-1]
+            if not senkyo_id.isdigit():
+                continue
+
+            # 都道府県
+            prefecture = ""
+            if len(cells) >= 3:
+                pref_a = cells[2].find("a")
+                if pref_a:
+                    pref_href = pref_a.get("href", "")
+                    pref_code = pref_href.rstrip("/").split("/")[-1]
+                    prefecture = PREF_CODE_MAP.get(pref_code, pref_a.get_text(strip=True))
+
+            level, type_ = _derive_level_type(name)
+            region = _derive_region(name, prefecture)
+            is_unexpected = bool(re.search(r"補欠|補選", name))
+            election_day_str = current_date.strftime("%Y-%m-%d")
+            status = "completed" if current_date < today else "scheduled"
+            m, d = current_date.month, current_date.day
+            day_label = f"投開票日：{current_date.year}年{m}月{d}日"
+
+            new_elections.append({
+                "id": f"go2senkyo-{senkyo_id}",
+                "name": name,
+                "type": type_,
+                "level": level,
+                "region": region,
+                "prefecture": prefecture or None,
+                "announcementDate": None,
+                "announcementDateLabel": "告示日：未定",
+                "electionDay": election_day_str,
+                "electionDayEarliest": election_day_str,
+                "electionDayLatest": election_day_str,
+                "electionDayLabel": day_label,
+                "certainty": "confirmed",
+                "status": status,
+                "isUnexpected": is_unexpected,
+                "source": href,
+                "note": "",
+            })
+            count += 1
+
+        print(f"  → {y}年: {count} 件取得")
+
+    print(f"  合計: {len(new_elections)} 件スクレイプ")
+    return merge_elections(existing, new_elections)
+
+
 # ===== Claude API 呼び出し（リトライ付き）=====
 
 def call_claude(client: anthropic.Anthropic, prompt: str,
@@ -214,52 +367,74 @@ def call_claude(client: anthropic.Anthropic, prompt: str,
 # ===== B. Claude web_search =====
 
 def update_all_elections(client: anthropic.Anthropic, existing: dict) -> dict:
-    """定期選挙＋補欠選挙・急選を web_search で一括取得"""
+    """go2senkyo で取得できなかった告示日などを Claude web_search で補完する"""
     today_str = datetime.now(JST).strftime("%Y年%m月%d日")
     year = datetime.now(JST).year
-    existing_names = [e["name"] for e in existing.get("elections", [])]
 
-    next_month = (datetime.now(JST).replace(day=1) + timedelta(days=32)).strftime("%Y年%m月")
-    prompt = f"""今日は{today_str}です。日本の今後の選挙日程を web_search で調べてください。
+    # 告示日が不明な今後の選挙を対象に補完を依頼
+    missing_ann = [
+        {"id": e["id"], "name": e["name"], "electionDay": e.get("electionDay")}
+        for e in existing.get("elections", [])
+        if e.get("status") not in ("completed", "cancelled")
+        and not e.get("announcementDate")
+    ]
 
-【検索してほしいこと】
-1. 「知事選 {year} {year + 1} 日程」
-2. 「統一地方選 {year + 1}」
-3. 「参院選 日程」「衆院選 日程」
-4. 「補欠選挙 {year} 日程」「急選 {year}」
-5. 「{datetime.now(JST).strftime('%Y年%m月')} 補欠選挙 告示」
-6. 「{next_month} 補欠選挙 告示」
-7. 「区長選 {year} {year + 1} 日程」「東京23区 区長選」
-8. 「区議選 {year} 補欠選挙」
+    if not missing_ann:
+        print("  補完対象なし（全選挙に告示日あり）")
+        return existing
+
+    prompt = f"""今日は{today_str}です。以下の日本の選挙の**告示日（公示日）**を web_search で調べてください。
+
+【対象選挙（告示日が未設定）】
+{json.dumps(missing_ann, ensure_ascii=False, indent=2)}
 
 【重要】
-- 直近〜2年以内に実施予定のすべての選挙を網羅してください
-- 市長選だけでなく区長選（東京23区など特別区）も必ず検索してください
-- 市議選・区議選の補欠選挙も漏れなく拾ってください（小規模なものも含む）
-- 以下の選挙はすでに登録済みなので出力不要（同名・類似名も不要）:
-{json.dumps(existing_names, ensure_ascii=False, indent=2)}
+- announcementDate のみ調べれば十分です（投票日は既知）
+- 不明な場合は null のまま返してください
+- 衆院選・参院選は「公示日」と呼びます
 
-以下スキーマの **JSONコードブロック（```json ... ```）のみ** 出力してください。説明文は不要です。
+以下スキーマで **JSONコードブロック（```json ... ```）のみ** 出力してください。説明文は不要です。
+出力する配列には id と announcementDate（YYYY-MM-DD または null）だけ含めてください。
 
-{ELECTIONS_SCHEMA}
+```json
+[
+  {{"id": "go2senkyo-12345", "announcementDate": "2026-05-10"}}
+]
+```
 """
-    print("  🔍 定期選挙＋補欠選挙を検索中…")
+    print(f"  🔍 告示日を補完中（{len(missing_ann)} 件）…")
     result = call_claude(client, prompt, use_search=True, max_uses=8)
     if not result:
         print("  ⚠️ Claude が空文字を返しました")
         return existing
     print(f"  Claude 応答（先頭200字）: {result[:200]}")
     try:
-        elections = extract_json_from_text(result)
-        if isinstance(elections, dict):
-            elections = [elections]
-        if not isinstance(elections, list):
-            raise ValueError(f"listではありません: {type(elections)}")
-        return merge_elections(existing, elections)
+        items = extract_json_from_text(result)
+        if isinstance(items, dict):
+            items = [items]
+        if not isinstance(items, list):
+            raise ValueError(f"listではありません: {type(items)}")
     except Exception as e:
         print(f"  ⚠️ パースエラー: {e}")
         print(f"  Claude 全応答: {result[:1000]}")
         return existing
+
+    id_map = {e["id"]: e for e in existing.get("elections", [])}
+    updated = 0
+    for item in items:
+        eid = item.get("id")
+        ann = item.get("announcementDate")
+        if eid and eid in id_map and ann:
+            el = id_map[eid]
+            el["announcementDate"] = ann
+            d = datetime.strptime(ann, "%Y-%m-%d")
+            el["announcementDateLabel"] = f"告示日：{d.year}年{d.month}月{d.day}日"
+            updated += 1
+    print(f"  ✅ 告示日を {updated} 件補完")
+    result_data = dict(existing)
+    result_data["elections"] = list(id_map.values())
+    result_data["lastUpdated"] = datetime.now(JST).isoformat()
+    return result_data
 
 
 def update_diet(client: anthropic.Anthropic, existing: dict) -> dict:
@@ -429,11 +604,16 @@ def main():
     # 選挙データ
     elections = load_json(ELECTIONS_FILE)
 
-    print("\n[B] 定期選挙＋補欠選挙を web_search で検索")
-    elections = update_all_elections(client, elections)
-
+    print("\n[A] 選挙ドットコムをスクレイピング")
+    elections = scrape_go2senkyo(elections)
     save_json(ELECTIONS_FILE, elections)
-    print(f"\n✅ 選挙データ合計: {len(elections.get('elections', []))} 件")
+    print(f"✅ 選挙データ合計: {len(elections.get('elections', []))} 件")
+
+    print("\n[B] Claude web_search で告示日・詳細を補完")
+    time.sleep(5)
+    elections = update_all_elections(client, elections)
+    save_json(ELECTIONS_FILE, elections)
+    print(f"✅ 選挙データ合計: {len(elections.get('elections', []))} 件")
 
     # 当選難度・議席・候補者数
     print("\n[D] 当選難度・議席・候補者数を調査")
