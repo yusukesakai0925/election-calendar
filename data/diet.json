@@ -1,25 +1,21 @@
 {
-  "lastUpdated": "2026-04-11T15:11:05.736312+09:00",
+  "lastUpdated": "2026-04-11T15:22:57.152627+09:00",
   "sessions": [
     {
       "id": "221st-special",
-      "name": "第221回国会（特別国会）",
-      "type": "特別国会",
+      "name": "第221回国会（特別会）",
+      "type": "特別会",
       "openDate": "2026-02-18",
       "closeDate": "2026-07-17",
       "closeDateUncertain": false,
       "milestones": [
         {
           "date": "2026-02-18",
-          "label": "高市早苗 第105代内閣総理大臣 指名"
+          "label": "召集・首相指名選挙"
         },
         {
-          "date": "2026-03-31",
-          "label": "2026年度予算成立（予定）"
-        },
-        {
-          "date": "2026-07-17",
-          "label": "会期末"
+          "date": "2026-02-20",
+          "label": "首相施政方針演説"
         }
       ]
     },
@@ -54,6 +50,20 @@
         {
           "date": "2026-04-11",
           "label": "2026年度予算自然成立期限"
+        }
+      ]
+    },
+    {
+      "id": "220th-regular",
+      "name": "第220回国会（常会）",
+      "type": "常会",
+      "openDate": "2026-01-23",
+      "closeDate": "2026-01-23",
+      "closeDateUncertain": false,
+      "milestones": [
+        {
+          "date": "2026-01-23",
+          "label": "召集・衆議院解散"
         }
       ]
     }

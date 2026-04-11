@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-11T06:00:00+09:00",
+  "lastUpdated": "2026-04-11T15:21:34.539431+09:00",
   "elections": [
     {
       "id": "shugin-2026",
@@ -169,6 +169,48 @@
       "isUnexpected": false,
       "source": "総務省・Wikipedia",
       "note": "任期満了日：2028年7月25日（2025年7月選出議員）。日程はいずれも予測値。"
+    },
+    {
+      "id": "kyoto-pref-assembly-right-kyoto-ward-2026",
+      "name": "京都府議会議員補欠選挙（京都市右京区選挙区）",
+      "type": "補選",
+      "level": "pref",
+      "region": "京都市右京区",
+      "prefecture": "京都府",
+      "announcementDate": "2026-03-08",
+      "announcementDateEarliest": null,
+      "announcementDateLatest": null,
+      "announcementDateLabel": "2026年3月8日",
+      "electionDay": "2026-04-05",
+      "electionDayEarliest": null,
+      "electionDayLatest": null,
+      "electionDayLabel": "2026年4月5日",
+      "certainty": "confirmed",
+      "status": "completed",
+      "isUnexpected": true,
+      "source": "Wikipedia「2026年京都府知事選挙」",
+      "note": "京都府知事選挙と同日実施"
+    },
+    {
+      "id": "saitama-prefasm-south2-kawaguchi-2026",
+      "name": "埼玉県議会議員補欠選挙（南2区・川口市）",
+      "type": "補選",
+      "level": "pref",
+      "region": "川口市",
+      "prefecture": "埼玉県",
+      "announcementDate": null,
+      "announcementDateEarliest": null,
+      "announcementDateLatest": null,
+      "announcementDateLabel": null,
+      "electionDay": "2026-03-08",
+      "electionDayEarliest": null,
+      "electionDayLatest": null,
+      "electionDayLabel": "2026年3月8日",
+      "certainty": "confirmed",
+      "status": "completed",
+      "isUnexpected": true,
+      "source": "東京新聞（2026年3月10日）",
+      "note": "西澤理議員が投開票翌日に辞職"
     }
   ]
 }
