@@ -775,6 +775,11 @@ body {
   font-size: 0.78rem;
   margin-top: 60px;
 }
+.site-footer .copyright {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  opacity: 0.7;
+}
 
 /* ===== レスポンシブ ===== */
 @media (max-width: 900px) {
