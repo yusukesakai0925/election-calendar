@@ -18,13 +18,11 @@ import json
 import re
 import sys
 import time
-import urllib.parse
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 import anthropic
 import requests
-from bs4 import BeautifulSoup
 
 JST = timezone(timedelta(hours=9))
 DATA_DIR = Path(__file__).parent.parent / "data"
@@ -198,117 +196,6 @@ def call_claude(client: anthropic.Anthropic, prompt: str,
     return "\n".join(texts)
 
 
-# ===== A. Wikipedia 直接パース（Claude 不使用）=====
-
-def make_id(text: str) -> str:
-    """テキストから URL safe な ID を生成"""
-    text = re.sub(r"[^\w\u3040-\u9fff]", "-", text)
-    text = re.sub(r"-+", "-", text).strip("-")
-    return text[:60]
-
-
-def detect_level(name: str, region: str) -> str:
-    text = name + region
-    if re.search(r"衆議院|参議院|国政", text):
-        return "national"
-    if re.search(r"知事|道議|府議|県議|都議", text):
-        return "pref"
-    if re.search(r"市長|区長|市議|区議", text):
-        return "city"
-    if re.search(r"町長|村長|町議|村議", text):
-        return "town"
-    return "city"
-
-
-def parse_date_jp(text: str, year: int) -> str | None:
-    """「4月19日」→「2026-04-19」 に変換"""
-    m = re.search(r"(\d{1,2})月(\d{1,2})日", text)
-    if m:
-        month, day = int(m.group(1)), int(m.group(2))
-        return f"{year}-{month:02d}-{day:02d}"
-    return None
-
-
-def parse_wikipedia_bosen(html: str, year: int) -> list:
-    """Wikipedia の補欠選挙一覧テーブルを直接パースして選挙リストを返す"""
-    soup = BeautifulSoup(html, "html.parser")
-    elections = []
-
-    for table in soup.find_all("table", class_="wikitable"):
-        rows = table.find_all("tr")
-        if len(rows) < 2:
-            continue
-
-        headers = [th.get_text(strip=True) for th in rows[0].find_all(["th", "td"])]
-        print(f"  テーブルヘッダー: {headers[:8]}")
-
-        col_date   = next((i for i, h in enumerate(headers)
-                           if re.search(r"投票日|選挙日|日付", h)), 0)
-        col_region = next((i for i, h in enumerate(headers)
-                           if re.search(r"選挙区|地域|都道府県|区域", h)), 1)
-        col_type   = next((i for i, h in enumerate(headers)
-                           if re.search(r"選挙の種類|種別|種類", h)), 2)
-
-        for row in rows[1:]:
-            cells = row.find_all(["td", "th"])
-            if len(cells) <= max(col_date, col_region, col_type):
-                continue
-
-            date_text   = cells[col_date].get_text(strip=True)   if len(cells) > col_date   else ""
-            region_text = cells[col_region].get_text(strip=True) if len(cells) > col_region else ""
-            type_text   = cells[col_type].get_text(strip=True)   if len(cells) > col_type   else ""
-
-            if not date_text or not region_text:
-                continue
-
-            election_day = parse_date_jp(date_text, year)
-            name = f"{region_text}{type_text}補欠選挙" if type_text else f"{region_text}補欠選挙"
-            eid  = f"bosen-{make_id(region_text)}-{year}"
-            level = detect_level(type_text, region_text)
-
-            elections.append({
-                "id": eid,
-                "name": name,
-                "type": type_text or "補選",
-                "level": level,
-                "region": region_text,
-                "prefecture": None,
-                "announcementDate": None,
-                "announcementDateLabel": "未定",
-                "electionDay": election_day,
-                "electionDayEarliest": None,
-                "electionDayLatest": None,
-                "electionDayLabel": date_text,
-                "certainty": "confirmed" if election_day else "estimated",
-                "status": "scheduled",
-                "isUnexpected": True,
-                "source": f"Wikipedia「{year}年日本の補欠選挙」",
-                "note": "",
-            })
-
-    return elections
-
-
-def update_from_wikipedia(existing: dict) -> dict:
-    """Wikipedia の補欠選挙ページを直接パース（Claude 不使用）"""
-    year = datetime.now(JST).year
-    results = []
-
-    for y in [year, year + 1]:
-        title = f"{y}年日本の補欠選挙"
-        url = f"https://ja.wikipedia.org/wiki/{urllib.parse.quote(title)}"
-        print(f"  📖 Wikipedia fetch: {title}")
-        html = fetch_url(url)
-        if not html:
-            continue
-        parsed = parse_wikipedia_bosen(html, y)
-        print(f"  → {len(parsed)} 件パース（wikitableなしの場合は0件）")
-        results.extend(parsed)
-        time.sleep(2)
-
-    return merge_elections(existing, results, force_unexpected=True)
-
-
 # ===== B. Claude web_search =====
 
 def update_all_elections(client: anthropic.Anthropic, existing: dict) -> dict:
@@ -429,11 +316,7 @@ def main():
     # 選挙データ
     elections = load_json(ELECTIONS_FILE)
 
-    print("\n[A] Wikipedia 補欠選挙テーブルを直接パース（Claude不使用）")
-    elections = update_from_wikipedia(elections)
-
     print("\n[B] 定期選挙＋補欠選挙を web_search で検索")
-    time.sleep(5)
     elections = update_all_elections(client, elections)
 
     save_json(ELECTIONS_FILE, elections)
