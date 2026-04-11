@@ -502,9 +502,10 @@ def update_competitiveness(client: anthropic.Anthropic, existing: dict) -> dict:
     """選挙ごとに議席数・候補者数・当選難度を web_search で調べて付与する"""
     today_str = datetime.now(JST).strftime("%Y年%m月%d日")
 
-    # 今後の選挙（completed 以外）を対象
+    # 対象: 国政・都道府県レベルの選挙 + 補選・急選のみ
     targets = [e for e in existing.get("elections", [])
-               if e.get("status") not in ("completed", "cancelled")]
+               if e.get("status") not in ("completed", "cancelled")
+               and (e.get("level") in ("national", "pref") or e.get("isUnexpected"))]
     if not targets:
         print("  対象選挙なし")
         return existing
