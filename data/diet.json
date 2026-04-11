@@ -2,6 +2,20 @@
   "lastUpdated": "2026-04-11T18:01:09.396842+09:00",
   "sessions": [
     {
+      "id": "220th-regular",
+      "name": "第220回国会（常会）",
+      "type": "常会",
+      "openDate": "2026-01-23",
+      "closeDate": "2026-01-23",
+      "closeDateUncertain": false,
+      "milestones": [
+        {
+          "date": "2026-01-23",
+          "label": "召集・衆議院解散"
+        }
+      ]
+    },
+    {
       "id": "221st-special",
       "name": "第221回国会（特別国会）",
       "type": "特別会",
@@ -12,20 +26,6 @@
         {
           "date": "2026-02-18",
           "label": "特別国会召集、首相指名選挙、第2次高市内閣発足"
-        }
-      ]
-    },
-    {
-      "id": "218-special",
-      "name": "第218回国会（特別会）",
-      "type": "特別会",
-      "openDate": "2026-02-18",
-      "closeDate": "2026-07-17",
-      "closeDateUncertain": false,
-      "milestones": [
-        {
-          "date": "2026-02-18",
-          "label": "召集、首相指名選挙、第2次高市内閣発足"
         },
         {
           "date": "2026-02-20",
@@ -42,24 +42,6 @@
         {
           "date": "2026-04-07",
           "label": "2026年度予算参院本会議で成立"
-        },
-        {
-          "date": "2026-04-11",
-          "label": "2026年度予算自然成立期限"
-        }
-      ]
-    },
-    {
-      "id": "220th-regular",
-      "name": "第220回国会（常会）",
-      "type": "常会",
-      "openDate": "2026-01-23",
-      "closeDate": "2026-01-23",
-      "closeDateUncertain": false,
-      "milestones": [
-        {
-          "date": "2026-01-23",
-          "label": "召集・衆議院解散"
         }
       ]
     }

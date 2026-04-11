@@ -1,27 +1,6 @@
 {
-  "lastUpdated": "2026-04-11T17:59:59.544678+09:00",
+  "lastUpdated": "2026-04-11T18:04:55.342993+09:00",
   "elections": [
-    {
-      "id": "shugin-2026",
-      "name": "第51回衆議院議員総選挙",
-      "type": "衆院選",
-      "level": "national",
-      "region": "全国",
-      "prefecture": null,
-      "announcementDate": "2026-01-27",
-      "announcementDateEarliest": null,
-      "announcementDateLatest": null,
-      "announcementDateLabel": "2026年1月27日",
-      "electionDay": "2026-02-08",
-      "electionDayEarliest": null,
-      "electionDayLatest": null,
-      "electionDayLabel": "2026年2月8日",
-      "certainty": "confirmed",
-      "status": "completed",
-      "isUnexpected": true,
-      "source": "総務省",
-      "note": "解散総選挙。自民党が単独3分の2超（316議席）を獲得。"
-    },
     {
       "id": "toyonaka-mayor-2026",
       "name": "豊中市長選挙",
@@ -129,14 +108,14 @@
       "announcementDate": null,
       "announcementDateLabel": "告示日：2028年9月（推定）",
       "electionDay": null,
-      "electionDayEarliest": "2028-10-01",
-      "electionDayLatest": "2028-10-31",
-      "electionDayLabel": "投開票日：2028年10月26日（任期満了日の前日の日曜）",
+      "electionDayEarliest": "2029-10-01",
+      "electionDayLatest": "2030-02-28",
+      "electionDayLabel": "投開票日：2029年〜2030年頃（任期満了予測）",
       "certainty": "estimated",
       "status": "scheduled",
       "isUnexpected": false,
       "source": "https://www.city.nagasaki.lg.jp/page/5931.html",
-      "note": "第51回選挙（2026年2月投開票）から4年後。解散がなければ任期満了（2028年10月26日）に基づく選挙"
+      "note": "第51回選挙（2026年2月投開票）から4年後に任期満了（2030年2月頃）。解散がなければそれ以前に選挙。"
     },
     {
       "id": "sangiin-2028",
