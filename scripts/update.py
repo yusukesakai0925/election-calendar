@@ -140,47 +140,43 @@ def merge_elections(existing: dict, new_elections: list,
 
 def call_claude(client: anthropic.Anthropic, prompt: str,
                 use_search: bool = False, max_uses: int = 5) -> str:
+    """
+    Claude を呼び出してテキストを返す。
+    web_search_20250305 は Anthropic がサーバー側で実行するため、
+    クライアントは tool_result を自分で返す必要はない。
+    レスポンスの content には複数の TextBlock が含まれる場合があるので、
+    すべてを結合して返す。
+    """
     tools = []
     if use_search:
         tools = [{"type": "web_search_20250305", "name": "web_search",
                   "max_uses": max_uses}]
-    messages = [{"role": "user", "content": prompt}]
 
-    while True:
-        kwargs = dict(model="claude-haiku-4-5-20251001",
-                      max_tokens=4096, messages=messages)
-        if tools:
-            kwargs["tools"] = tools
+    kwargs = dict(model="claude-haiku-4-5-20251001",
+                  max_tokens=4096,
+                  messages=[{"role": "user", "content": prompt}])
+    if tools:
+        kwargs["tools"] = tools
 
-        for attempt in range(5):
-            try:
-                response = client.messages.create(**kwargs)
-                break
-            except anthropic.RateLimitError:
-                wait = 60 * (attempt + 1)
-                print(f"  ⏳ レートリミット。{wait}秒待機 ({attempt+1}/5)…")
-                time.sleep(wait)
-        else:
-            print("  ❌ レートリミットで断念")
-            return ""
-
-        if response.stop_reason == "tool_use":
-            messages.append({"role": "assistant", "content": response.content})
-            tool_results = []
-            for block in response.content:
-                if block.type == "tool_use":
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": block.input.get("query", ""),
-                    })
-            messages.append({"role": "user", "content": tool_results})
-            continue
-
-        for block in response.content:
-            if hasattr(block, "text"):
-                return block.text
+    for attempt in range(5):
+        try:
+            response = client.messages.create(**kwargs)
+            break
+        except anthropic.RateLimitError:
+            wait = 60 * (attempt + 1)
+            print(f"  ⏳ レートリミット。{wait}秒待機 ({attempt+1}/5)…")
+            time.sleep(wait)
+    else:
+        print("  ❌ レートリミットで断念")
         return ""
+
+    # stop_reason のデバッグ出力
+    print(f"  stop_reason: {response.stop_reason}, blocks: {len(response.content)}")
+
+    # すべての TextBlock を結合して返す
+    # (web_search は preamble + ToolUseBlock + ToolResultBlock + 最終TextBlock という構造になる)
+    texts = [block.text for block in response.content if hasattr(block, "text")]
+    return "\n".join(texts)
 
 
 # ===== A. Wikipedia 直接パース（Claude 不使用）=====
