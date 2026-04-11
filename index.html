@@ -18,23 +18,32 @@
   <!-- カウントダウン -->
   <section class="hero">
     <div class="hero-inner">
+
+      <!-- 次の直近選挙 -->
       <div class="countdown-card" id="countdown-card">
-        <p class="countdown-label">次の注目選挙</p>
+        <p class="countdown-label">次の選挙まで</p>
         <p class="countdown-name" id="countdown-name">読み込み中…</p>
         <div class="countdown-number-row">
           <span class="countdown-days" id="countdown-days">--</span>
           <span class="countdown-unit">日</span>
         </div>
+        <div class="countdown-divider"></div>
         <p class="countdown-detail" id="countdown-detail"></p>
         <p class="countdown-certainty" id="countdown-certainty"></p>
       </div>
 
-      <!-- 直近の選挙サブカード（3件） -->
-      <div class="upcoming-mini" id="upcoming-mini"></div>
+      <!-- 右カラム：主要3選挙 + 直近サブカード -->
+      <div class="hero-right">
+        <!-- 主要3選挙カウントダウン -->
+        <div class="major-elections" id="major-elections"></div>
+        <!-- 直近の選挙サブカード -->
+        <div class="upcoming-mini" id="upcoming-mini"></div>
+      </div>
+
     </div>
   </section>
 
-  <!-- フィルター -->
+  <!-- フィルター＆ビュー切替 -->
   <section class="filters">
     <div class="filter-inner">
       <div class="filter-group">
@@ -42,9 +51,16 @@
         <button class="filter-btn active" data-level="all">すべて</button>
         <button class="filter-btn" data-level="national">国政</button>
         <button class="filter-btn" data-level="pref">都道府県</button>
-        <button class="filter-btn" data-level="city">市・区</button>
-        <button class="filter-btn" data-level="town">町・村</button>
+        <button class="filter-btn filter-sub" data-level="pref-mayor">└ 知事選</button>
+        <button class="filter-btn filter-sub" data-level="pref-assembly">└ 県議選</button>
+        <button class="filter-btn" data-level="municipal">市区町村</button>
+        <button class="filter-btn filter-sub" data-level="mayor">└ 首長選</button>
+        <button class="filter-btn filter-sub" data-level="assembly">└ 議員選</button>
         <button class="filter-btn unexpected-btn" data-level="unexpected">⚡ 補選・急選</button>
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn active" data-view="timeline">📋 リスト</button>
+        <button class="view-btn" data-view="gantt">📅 カレンダー</button>
       </div>
       <label class="show-completed-label">
         <input type="checkbox" id="show-completed">
@@ -54,17 +70,17 @@
   </section>
 
   <!-- メインコンテンツ -->
-  <main class="main-content">
+  <main class="main-content" id="main-content">
 
     <!-- タイムライン -->
-    <div class="timeline-section">
+    <div class="timeline-section" id="view-timeline">
       <div id="timeline">
         <p class="loading-text">選挙データを読み込み中…</p>
       </div>
     </div>
 
     <!-- 国会日程サイドバー -->
-    <aside class="diet-sidebar">
+    <aside class="diet-sidebar" id="diet-sidebar">
       <h2 class="sidebar-title">🏛️ 国会日程</h2>
       <div id="diet-schedule">
         <p class="loading-text">読み込み中…</p>
@@ -72,6 +88,25 @@
     </aside>
 
   </main>
+
+  <!-- ガントチャートビュー（リスト非表示時に全幅表示） -->
+  <div class="gantt-wrap" id="view-gantt" style="display:none">
+    <div class="gantt-controls">
+      <button class="gantt-scroll-btn" id="gantt-prev">◀ 前へ</button>
+      <span class="gantt-range-label" id="gantt-range-label"></span>
+      <button class="gantt-scroll-btn" id="gantt-next">▶ 次へ</button>
+    </div>
+    <div class="gantt-container" id="gantt-container"></div>
+    <div class="gantt-legend">
+      <span class="gantt-legend-item national">国政</span>
+      <span class="gantt-legend-item pref-mayor">都道府県・知事選</span>
+      <span class="gantt-legend-item pref-assembly">都道府県・議員選</span>
+      <span class="gantt-legend-item city-mayor">市区町村・首長選</span>
+      <span class="gantt-legend-item city-assembly">市区町村・議員選</span>
+      <span class="gantt-legend-item unexpected">補選・急選</span>
+      <span class="gantt-legend-item uncertain-ex">点線＝日程未確定</span>
+    </div>
+  </div>
 
   <footer class="site-footer">
     <p>データはAIによる自動収集です。正確な情報は各選挙管理委員会・総務省でご確認ください。</p>

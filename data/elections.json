@@ -128,6 +128,28 @@
       "note": "正式日程は臨時特例法の成立後に確定。政令市以外の市区町村長・議員が対象。"
     },
     {
+      "id": "shugin-2030",
+      "name": "第52回衆議院議員総選挙（任期満了予測）",
+      "type": "衆院選",
+      "level": "national",
+      "region": "全国",
+      "prefecture": null,
+      "announcementDate": null,
+      "announcementDateEarliest": "2030-01-17",
+      "announcementDateLatest": "2030-01-24",
+      "announcementDateLabel": "2030年1月下旬頃（予測）",
+      "electionDay": null,
+      "electionDayEarliest": "2030-01-27",
+      "electionDayLatest": "2030-02-09",
+      "electionDayLabel": "2030年2月上旬頃（予測）",
+      "certainty": "estimated",
+      "status": "scheduled",
+      "isUnexpected": false,
+      "source": "任期計算による予測",
+      "note": "2026年2月8日の第51回総選挙から4年後が任期満了。ただし衆議院はいつでも解散の可能性があり、実際の選挙日は大幅に前倒しになりうる。",
+      "dissolutionRisk": true
+    },
+    {
       "id": "sangiin-2028",
       "name": "第28回参議院議員通常選挙",
       "type": "参院選",

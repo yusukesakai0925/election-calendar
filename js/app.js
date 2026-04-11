@@ -2,16 +2,21 @@
 const LEVEL_LABELS = {
   national:   '国政',
   pref:       '都道府県',
-  city:       '市・区',
-  town:       '町・村',
+  city:       '市区町村',
+  town:       '市区町村',
   unexpected: '補選・急選',
 };
 
 // フィルター状態
 let currentLevel = 'all';
 let showCompleted = false;
+let currentView = 'timeline';
 let electionsData = [];
 let dietData = [];
+
+// ガントチャートの表示開始月オフセット（0 = 今月）
+let ganttOffset = 0;
+const GANTT_MONTHS = 6; // 一度に表示する月数
 
 // ===== データ読み込み =====
 async function loadData() {
@@ -32,6 +37,23 @@ async function loadData() {
     document.getElementById('timeline').innerHTML =
       '<p class="loading-text">データの読み込みに失敗しました。</p>';
   }
+}
+
+// ===== 選挙の色クラスを返す =====
+function getLevelClass(el) {
+  if (el.isUnexpected) return 'unexpected';
+  if (el.level === 'national') return 'national';
+  if (el.level === 'pref') {
+    if (/知事/.test(el.type)) return 'pref-mayor';
+    if (/県議|道議|府議|都議|議会/.test(el.type)) return 'pref-assembly';
+    return 'pref-mayor'; // デフォルト
+  }
+  if (el.level === 'city' || el.level === 'town') {
+    if (/市長|町長|村長|区長/.test(el.type)) return 'city-mayor';
+    if (/市議|町議|村議|区議|議会/.test(el.type)) return 'city-assembly';
+    return 'city-mayor'; // デフォルト
+  }
+  return el.level;
 }
 
 // ===== 日付ユーティリティ =====
@@ -89,6 +111,12 @@ function getFiltered() {
     if (!showCompleted && isCompleted(el)) return false;
     if (currentLevel === 'all') return true;
     if (currentLevel === 'unexpected') return el.isUnexpected;
+    if (currentLevel === 'pref') return el.level === 'pref';
+    if (currentLevel === 'pref-mayor')    return el.level === 'pref' && /知事/.test(el.type);
+    if (currentLevel === 'pref-assembly') return el.level === 'pref' && /県議|道議|府議|都議|議会/.test(el.type);
+    if (currentLevel === 'municipal') return el.level === 'city' || el.level === 'town';
+    if (currentLevel === 'mayor')     return (el.level === 'city' || el.level === 'town') && /市長|町長|村長|区長/.test(el.type);
+    if (currentLevel === 'assembly')  return (el.level === 'city' || el.level === 'town') && /市議|町議|村議|区議|議会/.test(el.type);
     return el.level === currentLevel;
   });
 }
@@ -106,6 +134,8 @@ function getNextElection(elections) {
 // ===== カウントダウンレンダリング =====
 function renderCountdown(elections) {
   const next = getNextElection(elections.length ? elections : electionsData.filter(el => !isCompleted(el)));
+  const card = document.getElementById('countdown-card');
+
   if (!next) {
     document.getElementById('countdown-name').textContent = '予定された選挙はありません';
     document.getElementById('countdown-days').textContent = '--';
@@ -118,27 +148,99 @@ function renderCountdown(elections) {
   const days = Math.ceil((elDay - today()) / 86400000);
   document.getElementById('countdown-days').textContent = days >= 0 ? days : 0;
 
-  // 投票日の表示
-  const elDayLabel = getElectionDayLabel(next);
-  document.getElementById('countdown-detail').textContent = `投票日: ${elDayLabel}`;
+  // 詳細情報を複数行で表示
+  const lines = [];
 
-  // 確定度
-  const certMap = { confirmed: '', estimated: '※ 日程は予測値です', unknown: '※ 日程未確定' };
-  document.getElementById('countdown-certainty').textContent = certMap[next.certainty] || '';
+  // 投票日
+  lines.push(`投票日　${getElectionDayLabel(next)}`);
 
-  // 公示日カウントダウン
+  // 公示日
+  const annLabel = getAnnouncementLabel(next);
+  if (annLabel !== '未定') lines.push(`公示日　${annLabel}`);
+
+  // 公示日までのカウントダウン
   if (next.announcementDate) {
     const annDays = daysUntil(next.announcementDate);
-    if (annDays > 0) {
-      document.getElementById('countdown-detail').textContent +=
-        `　　公示まであと ${annDays} 日`;
-    }
+    if (annDays > 0) lines.push(`公示まであと ${annDays} 日`);
   }
 
+  // 地域
+  if (next.region && next.region !== '全国') lines.push(`地域　${next.region}`);
+
+  document.getElementById('countdown-detail').innerHTML = lines.join('<br>');
+
+  // 確定度
+  const certMap = { confirmed: '', estimated: '日程は予測値', unknown: '日程未確定' };
+  document.getElementById('countdown-certainty').textContent = certMap[next.certainty] || '';
+
   // カードの色（緊急度）
-  const card = document.getElementById('countdown-card');
-  if (days <= 7) card.style.background = 'rgba(192,57,43,0.25)';
+  if (days <= 7) card.style.background = 'rgba(192,57,43,0.3)';
   else if (days <= 30) card.style.background = 'rgba(230,126,34,0.2)';
+  else card.style.background = '';
+}
+
+// ===== 主要3選挙（衆院選・参院選・統一地方選）=====
+const MAJOR_ELECTION_MATCHERS = [
+  {
+    label: '衆院選',
+    match: el => el.level === 'national' && /衆議院|衆院選/.test(el.name + el.type),
+    unknownLabel: '解散次第',
+  },
+  {
+    label: '参院選',
+    match: el => el.level === 'national' && /参議院|参院選/.test(el.name + el.type),
+    unknownLabel: '未定',
+  },
+  {
+    label: '統一地方選',
+    match: el => /統一地方選/.test(el.name + el.type),
+    unknownLabel: '未定',
+  },
+];
+
+function renderMajorElections() {
+  const container = document.getElementById('major-elections');
+  const allFuture = electionsData.filter(el => !isCompleted(el));
+
+  container.innerHTML = MAJOR_ELECTION_MATCHERS.map(({ label, match, unknownLabel }) => {
+    // 同種の中で最も近いものを選ぶ
+    const candidates = allFuture
+      .filter(match)
+      .map(el => ({ el, d: getPrimaryDate(el) }))
+      .filter(x => x.d)
+      .sort((a, b) => a.d - b.d);
+
+    const found = candidates[0];
+
+    if (!found) {
+      return `
+        <div class="major-card">
+          <div class="major-card-label">${label}</div>
+          <div class="major-card-name">${label}</div>
+          <div class="major-card-unknown">${unknownLabel}</div>
+          <div class="major-card-date">日程未定</div>
+        </div>`;
+    }
+
+    const { el } = found;
+    const days = Math.ceil((found.d - today()) / 86400000);
+    const uncertain = el.certainty !== 'confirmed';
+    const dateLabel = getElectionDayLabel(el);
+    const isDissolution = !!el.dissolutionRisk;
+
+    return `
+      <div class="major-card">
+        <div class="major-card-label">${label}</div>
+        <div class="major-card-name">${isDissolution ? '任期満了まで' : label}</div>
+        <div>
+          <span class="major-card-days">${days}</span>
+          <span class="major-card-unit">日</span>
+        </div>
+        <div class="major-card-date">${dateLabel}</div>
+        ${uncertain && !isDissolution ? '<div class="major-card-uncertain">※予測値</div>' : ''}
+        ${isDissolution ? '<div class="major-card-dissolution">※いつでも解散の可能性あり</div>' : ''}
+      </div>`;
+  }).join('');
 }
 
 // ===== 直近サブカード =====
@@ -209,8 +311,8 @@ function renderCardCountdown(el) {
 
 // ===== 選挙カード =====
 function renderElectionCard(el) {
-  const levelLabel = el.isUnexpected ? '補選・急選' : (LEVEL_LABELS[el.level] || el.level);
-  const levelClass = el.isUnexpected ? 'unexpected' : el.level;
+  const levelClass = getLevelClass(el);
+  const levelLabel = el.isUnexpected ? '補選・急選' : (el.type || LEVEL_LABELS[el.level] || el.level);
   const annLabel = getAnnouncementLabel(el);
   const elDayLabel = getElectionDayLabel(el);
   const isUnc = el.certainty !== 'confirmed';
@@ -347,6 +449,239 @@ function renderDiet() {
   }).join('');
 }
 
+// ===== ガントチャート =====
+
+// 表示する月リストを生成（ganttOffset から GANTT_MONTHS ヶ月分）
+function getGanttMonths() {
+  const t = today();
+  const months = [];
+  for (let i = ganttOffset; i < ganttOffset + GANTT_MONTHS; i++) {
+    const d = new Date(t.getFullYear(), t.getMonth() + i, 1);
+    months.push(d);
+  }
+  return months;
+}
+
+// 月の日数
+function daysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+// 選挙のガント上の「開始日」「終了日」を取得
+function getGanttSpan(el) {
+  const start = el.announcementDate
+    ? parseDate(el.announcementDate)
+    : (el.announcementDateEarliest ? parseDate(el.announcementDateEarliest) : null);
+  const end = el.electionDay
+    ? parseDate(el.electionDay)
+    : (el.electionDayLatest ? parseDate(el.electionDayLatest) : null);
+  // 公示日なし・投票日のみの場合
+  if (!start && end) return { start: end, end };
+  if (!end && start) return { start, end: start };
+  return { start, end };
+}
+
+function renderGantt() {
+  const elections = getFiltered().filter(el => {
+    const span = getGanttSpan(el);
+    return span.start || span.end;
+  }).sort((a, b) =>
+    (getPrimaryDate(a) || new Date(9999,0)) - (getPrimaryDate(b) || new Date(9999,0))
+  );
+
+  const months = getGanttMonths();
+  const firstDay = months[0];
+  const lastDay = new Date(months[months.length - 1].getFullYear(), months[months.length - 1].getMonth() + 1, 0);
+  const todayDate = today();
+
+  // 範囲ラベル更新
+  const firstM = months[0];
+  const lastM = months[months.length - 1];
+  document.getElementById('gantt-range-label').textContent =
+    `${firstM.getFullYear()}年${firstM.getMonth()+1}月 〜 ${lastM.getFullYear()}年${lastM.getMonth()+1}月`;
+
+  // 表示期間の総日数
+  const totalDays = Math.round((lastDay - firstDay) / 86400000) + 1;
+
+  // セル幅計算（月ヘッダーセルの比率）
+  const monthWidths = months.map(m => daysInMonth(m.getFullYear(), m.getMonth()));
+
+  // テーブル構築
+  let html = '<table class="gantt-table">';
+
+  // 年ヘッダー行
+  html += '<colgroup><col style="width:160px">';
+  months.forEach(m => {
+    html += `<col style="width:${(daysInMonth(m.getFullYear(), m.getMonth()) / totalDays * 100).toFixed(2)}%">`;
+  });
+  html += '</colgroup>';
+
+  // 年ラベル（月が変わるところでまとめる）
+  html += '<thead><tr class="gantt-year-row"><th></th>';
+  let prevYear = null;
+  let yearSpan = 0;
+  const yearGroups = [];
+  months.forEach((m, i) => {
+    if (m.getFullYear() !== prevYear) {
+      if (prevYear !== null) yearGroups.push({ year: prevYear, span: yearSpan });
+      prevYear = m.getFullYear();
+      yearSpan = 1;
+    } else {
+      yearSpan++;
+    }
+    if (i === months.length - 1) yearGroups.push({ year: prevYear, span: yearSpan });
+  });
+  yearGroups.forEach(g => {
+    html += `<th colspan="${g.span}">${g.year}年</th>`;
+  });
+  html += '</tr>';
+
+  // 月ヘッダー行
+  html += '<tr class="gantt-header-row"><th>選挙名</th>';
+  months.forEach(m => {
+    const isTodayMonth = m.getFullYear() === todayDate.getFullYear() && m.getMonth() === todayDate.getMonth();
+    html += `<th${isTodayMonth ? ' class="today-col"' : ''}>${m.getMonth()+1}月</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  // 各選挙行
+  if (!elections.length) {
+    html += `<tr><td colspan="${months.length + 1}" style="padding:24px;text-align:center;color:#999">該当する選挙はありません</td></tr>`;
+  }
+
+  elections.forEach(el => {
+    const span = getGanttSpan(el);
+    const levelClass = getLevelClass(el);
+    const isUnc = el.certainty !== 'confirmed';
+    const completed = isCompleted(el);
+
+    html += `<tr class="gantt-row${completed ? ' completed' : ''}">`;
+    html += `<td class="gantt-label-cell" title="${el.name}">
+      <div class="gantt-label-name">${el.name}</div>
+      ${el.region && el.region !== '全国' ? `<div class="gantt-label-region">${el.region}</div>` : ''}
+    </td>`;
+
+    // 各月セル
+    months.forEach(m => {
+      const year = m.getFullYear();
+      const month = m.getMonth();
+      const mStart = new Date(year, month, 1);
+      const mEnd = new Date(year, month + 1, 0);
+      const mDays = daysInMonth(year, month);
+      const isTodayMonth = year === todayDate.getFullYear() && month === todayDate.getMonth();
+
+      html += `<td class="gantt-cell${isTodayMonth ? ' today-col' : ''}" style="position:relative">`;
+
+      // バーがこのセルに掛かるか判定
+      if (span.start && span.end) {
+        const barStart = span.start < mStart ? mStart : span.start;
+        const barEnd   = span.end   > mEnd   ? mEnd   : span.end;
+
+        if (barStart <= barEnd && span.start <= mEnd && span.end >= mStart) {
+          // セル内での開始・終了の割合（%）
+          const leftPct  = ((barStart - mStart) / 86400000 / mDays * 100).toFixed(2);
+          const rightPct = (((mEnd - barEnd)   / 86400000 + 1) / mDays * 100).toFixed(2);
+          const widthPct = (100 - parseFloat(leftPct) - parseFloat(rightPct)).toFixed(2);
+
+          html += `<div class="gantt-bar ${levelClass}${isUnc ? ' uncertain' : ''}"
+            style="left:${leftPct}%;width:${widthPct}%;min-width:4px;"
+            title="${el.name}（${getAnnouncementLabel(el)} 〜 ${getElectionDayLabel(el)}）">`;
+
+          // 公示日マーカー（このセル内に公示日があれば）
+          if (span.start >= mStart && span.start <= mEnd) {
+            const markerLeft = ((span.start - mStart) / 86400000 / mDays * 100).toFixed(2);
+            html += `<div class="gantt-marker" style="left:0"></div>`;
+          }
+
+          // バーラベル（最初の月セルにだけ表示）
+          if (span.start >= mStart && span.start <= mEnd) {
+            html += `<span class="gantt-bar-label">${el.name}</span>`;
+          }
+
+          html += '</div>';
+        }
+      }
+
+      // 今日ライン
+      if (isTodayMonth) {
+        const todayLeft = ((todayDate.getDate() - 1) / mDays * 100).toFixed(2);
+        html += `<div class="gantt-today-line" style="left:${todayLeft}%"></div>`;
+      }
+
+      html += '</td>';
+    });
+
+    html += '</tr>';
+  });
+
+  // 国会会期行
+  dietData.forEach(s => {
+    const sOpen  = parseDate(s.openDate);
+    const sClose = parseDate(s.closeDate);
+    if (!sOpen || !sClose) return;
+
+    html += `<tr class="gantt-row" style="opacity:0.7">`;
+    html += `<td class="gantt-label-cell" title="${s.name}">
+      <div class="gantt-label-name" style="color:#7d3c98">🏛 ${s.name}</div>
+      <div class="gantt-label-region">${s.type}</div>
+    </td>`;
+
+    months.forEach(m => {
+      const year = m.getFullYear();
+      const month = m.getMonth();
+      const mStart = new Date(year, month, 1);
+      const mEnd   = new Date(year, month + 1, 0);
+      const mDays  = daysInMonth(year, month);
+      const isTodayMonth = year === todayDate.getFullYear() && month === todayDate.getMonth();
+
+      html += `<td class="gantt-cell${isTodayMonth ? ' today-col' : ''}" style="position:relative">`;
+
+      if (sOpen <= mEnd && sClose >= mStart) {
+        const barStart = sOpen  < mStart ? mStart : sOpen;
+        const barEnd   = sClose > mEnd   ? mEnd   : sClose;
+        const leftPct  = ((barStart - mStart) / 86400000 / mDays * 100).toFixed(2);
+        const rightPct = (((mEnd - barEnd)    / 86400000 + 1) / mDays * 100).toFixed(2);
+        const widthPct = (100 - parseFloat(leftPct) - parseFloat(rightPct)).toFixed(2);
+        html += `<div class="gantt-diet-bar" style="left:${leftPct}%;width:${widthPct}%;min-width:4px"></div>`;
+      }
+
+      if (isTodayMonth) {
+        const todayLeft = ((todayDate.getDate() - 1) / mDays * 100).toFixed(2);
+        html += `<div class="gantt-today-line" style="left:${todayLeft}%"></div>`;
+      }
+
+      html += '</td>';
+    });
+
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('gantt-container').innerHTML = html;
+}
+
+// ===== ビュー切替 =====
+function switchView(view) {
+  currentView = view;
+  const timelineEl = document.getElementById('view-timeline');
+  const ganttEl    = document.getElementById('view-gantt');
+  const dietSidebar = document.getElementById('diet-sidebar');
+  const mainContent = document.getElementById('main-content');
+
+  if (view === 'gantt') {
+    timelineEl.style.display = 'none';
+    dietSidebar.style.display = 'none';
+    mainContent.style.display = 'none';
+    ganttEl.style.display = 'block';
+    renderGantt();
+  } else {
+    timelineEl.style.display = '';
+    dietSidebar.style.display = '';
+    mainContent.style.display = '';
+    ganttEl.style.display = 'none';
+  }
+}
+
 // ===== メインレンダリング =====
 function render() {
   const filtered = getFiltered();
@@ -355,6 +690,7 @@ function render() {
   );
 
   renderCountdown(electionsData.filter(el => !isCompleted(el)));
+  renderMajorElections();
   renderUpcomingMini(electionsData);
   renderTimeline(sorted);
   renderDiet();
@@ -366,17 +702,42 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentLevel = btn.dataset.level;
-    renderTimeline(getFiltered().sort((a, b) =>
-      (getPrimaryDate(a) || new Date(9999,0)) - (getPrimaryDate(b) || new Date(9999,0))
-    ));
+    if (currentView === 'gantt') {
+      renderGantt();
+    } else {
+      renderTimeline(getFiltered().sort((a, b) =>
+        (getPrimaryDate(a) || new Date(9999,0)) - (getPrimaryDate(b) || new Date(9999,0))
+      ));
+    }
+  });
+});
+
+document.querySelectorAll('.view-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    switchView(btn.dataset.view);
   });
 });
 
 document.getElementById('show-completed').addEventListener('change', e => {
   showCompleted = e.target.checked;
-  renderTimeline(getFiltered().sort((a, b) =>
-    (getPrimaryDate(a) || new Date(9999,0)) - (getPrimaryDate(b) || new Date(9999,0))
-  ));
+  if (currentView === 'gantt') {
+    renderGantt();
+  } else {
+    renderTimeline(getFiltered().sort((a, b) =>
+      (getPrimaryDate(a) || new Date(9999,0)) - (getPrimaryDate(b) || new Date(9999,0))
+    ));
+  }
+});
+
+document.getElementById('gantt-prev').addEventListener('click', () => {
+  ganttOffset -= GANTT_MONTHS;
+  renderGantt();
+});
+document.getElementById('gantt-next').addEventListener('click', () => {
+  ganttOffset += GANTT_MONTHS;
+  renderGantt();
 });
 
 // ===== 起動 =====
