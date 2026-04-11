@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-11T18:04:55.342993+09:00",
+  "lastUpdated": "2026-04-11T18:09:47.830401+09:00",
   "elections": [
     {
       "id": "toyonaka-mayor-2026",
@@ -118,25 +118,6 @@
       "note": "第51回選挙（2026年2月投開票）から4年後に任期満了（2030年2月頃）。解散がなければそれ以前に選挙。"
     },
     {
-      "id": "sangiin-2028",
-      "name": "第28回参議院議員通常選挙",
-      "type": "参院選",
-      "level": "national",
-      "region": "全国",
-      "prefecture": null,
-      "announcementDate": null,
-      "announcementDateLabel": "未定",
-      "electionDay": null,
-      "electionDayEarliest": "2028-07-25",
-      "electionDayLatest": "2028-07-25",
-      "electionDayLabel": "2028年7月25日（任期満了日）",
-      "certainty": "confirmed",
-      "status": "scheduled",
-      "isUnexpected": false,
-      "source": "選挙ドットコム、Wikipedia",
-      "note": "2022年7月の第26回参院選当選者の改選期"
-    },
-    {
       "id": "kyoto-pref-assembly-right-kyoto-ward-2026",
       "name": "京都府議会議員補欠選挙",
       "type": "補選",
@@ -150,7 +131,7 @@
       "electionDayLatest": "2026-04-05",
       "electionDayLabel": "投開票日：2026年4月5日",
       "certainty": "confirmed",
-      "status": "scheduled",
+      "status": "completed",
       "isUnexpected": true,
       "source": "https://go2senkyo.com/local/senkyo/29155",
       "note": "京都府知事選同日投開票"
@@ -190,7 +171,7 @@
       "electionDayLatest": "2026-04-05",
       "electionDayLabel": "投開票日：2026年4月5日",
       "certainty": "confirmed",
-      "status": "scheduled",
+      "status": "completed",
       "isUnexpected": false,
       "source": "https://kyoto-senkyo2026.jp/",
       "note": "期日前投票：3月20日～4月4日"
@@ -308,6 +289,25 @@
       "isUnexpected": false,
       "source": "https://ja.wikipedia.org/wiki/%E7%AC%AC28%E5%9B%9E%E5%8F%82%E8%AD%B0%E9%99%A2%E8%AD%B0%E5%93%A1%E9%80%9A%E5%B8%B8%E9%81%B8%E6%8C%99",
       "note": "2022年選出議員の改選期。参議院議員の任期は6年で3年ごとに半数改選"
+    },
+    {
+      "id": "omihachiman-city-assembly-hoketsu-2026",
+      "name": "近江八幡市議会議員補欠選挙",
+      "type": "市議選",
+      "level": "city",
+      "region": "近江八幡市",
+      "prefecture": "滋賀県",
+      "announcementDate": "2026-04-14",
+      "announcementDateLabel": "告示：2026年4月14日",
+      "electionDay": "2026-04-19",
+      "electionDayEarliest": null,
+      "electionDayLatest": null,
+      "electionDayLabel": "2026年4月19日",
+      "certainty": "confirmed",
+      "status": "scheduled",
+      "isUnexpected": true,
+      "source": "公職選挙法第33条の2（春の補選）",
+      "note": "2026年春の統一補欠選挙"
     }
   ]
 }

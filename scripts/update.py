@@ -118,18 +118,37 @@ def fetch_url(url: str) -> str:
 def merge_elections(existing: dict, new_elections: list,
                     force_unexpected: bool = False) -> dict:
     existing_map = {e["id"]: e for e in existing.get("elections", [])}
-    added, updated = 0, 0
+
+    # 名前ベースの重複検出用インデックス（正規化した選挙名）
+    def norm(s: str) -> str:
+        return re.sub(r"[^\w\u3040-\u9fff]", "", s).lower()
+
+    name_to_id = {norm(e["name"]): eid for eid, e in existing_map.items()}
+
+    # 過去の選挙を自動的に completed に更新
+    today_str = datetime.now(JST).strftime("%Y-%m-%d")
+    for e in existing_map.values():
+        if e.get("electionDay") and e["electionDay"] < today_str and e.get("status") == "scheduled":
+            e["status"] = "completed"
+
+    added, updated, skipped = 0, 0, 0
     for e in new_elections:
         if "id" not in e or "name" not in e:
             continue
         if force_unexpected:
             e["isUnexpected"] = True
+        # 同名の選挙が別IDで既に存在する場合はスキップ（重複防止）
+        n = norm(e["name"])
+        if n in name_to_id and name_to_id[n] != e["id"]:
+            skipped += 1
+            continue
         if e["id"] in existing_map:
             updated += 1
         else:
             added += 1
         existing_map[e["id"]] = e
-    print(f"   → 新規: {added}件、更新: {updated}件")
+        name_to_id[n] = e["id"]
+    print(f"   → 新規: {added}件、更新: {updated}件、重複スキップ: {skipped}件")
     result = dict(existing)
     result["elections"] = list(existing_map.values())
     result["lastUpdated"] = datetime.now(JST).isoformat()
@@ -295,21 +314,23 @@ def update_from_wikipedia(existing: dict) -> dict:
 def update_all_elections(client: anthropic.Anthropic, existing: dict) -> dict:
     """定期選挙＋補欠選挙・急選を web_search で一括取得"""
     today_str = datetime.now(JST).strftime("%Y年%m月%d日")
-    existing_ids = [e["id"] for e in existing.get("elections", [])]
+    year = datetime.now(JST).year
+    existing_names = [e["name"] for e in existing.get("elections", [])]
 
     prompt = f"""今日は{today_str}です。日本の今後の選挙日程を web_search で調べてください。
 
 【検索してほしいこと】
-1. 「知事選 {datetime.now(JST).year} {datetime.now(JST).year + 1} 日程」
-2. 「統一地方選 {datetime.now(JST).year + 1}」
+1. 「知事選 {year} {year + 1} 日程」
+2. 「統一地方選 {year + 1}」
 3. 「参院選 日程」「衆院選 日程」
-4. 「補欠選挙 {datetime.now(JST).year} 日程」「急選 {datetime.now(JST).year}」
-5. 「市議会 補欠選挙 {datetime.now(JST).strftime('%Y年%m月')}」
+4. 「補欠選挙 {year} 日程」「急選 {year}」
+5. 「{datetime.now(JST).strftime('%Y年%m月')} 補欠選挙 告示」
 
 【重要】
 - 直近〜2年以内に実施予定のすべての選挙を網羅してください
 - 補欠選挙・急選は特に漏れなく拾ってください（市議・町議の小規模なものも含む）
-- 既存ID（重複不要）: {json.dumps(existing_ids, ensure_ascii=False)}
+- 以下の選挙はすでに登録済みなので出力不要（同名・類似名も不要）:
+{json.dumps(existing_names, ensure_ascii=False, indent=2)}
 
 以下スキーマの **JSONコードブロック（```json ... ```）のみ** 出力してください。説明文は不要です。
 
