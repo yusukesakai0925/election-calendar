@@ -115,13 +115,15 @@ def fetch_url(url: str, timeout: int = FETCH_TIMEOUT) -> str:
         return ""
 
 
-def html_to_text(html: str, max_chars: int = 12000) -> str:
+def html_to_text(html: str, max_chars: int = 6000) -> str:
     """HTML から本文テキストを抽出（Claude へ渡す用）"""
-    soup = BeautifulSoup(html, "lxml")
+    import warnings
+    from bs4 import XMLParsedAsHTMLWarning
+    warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
+    soup = BeautifulSoup(html, "html.parser")
     for tag in soup(["script", "style", "nav", "footer", "header"]):
         tag.decompose()
     text = soup.get_text(separator="\n", strip=True)
-    # 連続する空行を削除
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text[:max_chars]
 
@@ -159,13 +161,24 @@ def call_claude(client: anthropic.Anthropic, prompt: str,
     while True:
         kwargs = dict(
             model="claude-haiku-4-5-20251001",
-            max_tokens=8192,
+            max_tokens=4096,
             messages=messages,
         )
         if tools:
             kwargs["tools"] = tools
 
-        response = client.messages.create(**kwargs)
+        # レートリミット対策：リトライ
+        for attempt in range(4):
+            try:
+                response = client.messages.create(**kwargs)
+                break
+            except anthropic.RateLimitError:
+                wait = 30 * (attempt + 1)
+                print(f"  ⏳ レートリミット。{wait}秒待機後リトライ ({attempt+1}/4)…")
+                time.sleep(wait)
+        else:
+            print("  ❌ レートリミットで断念")
+            return ""
 
         if response.stop_reason == "tool_use":
             messages.append({"role": "assistant", "content": response.content})
@@ -475,15 +488,19 @@ def main():
 
     print("\n[A-1] Wikipedia 補欠選挙ページを直接 fetch")
     elections = update_from_wikipedia(client, elections)
+    time.sleep(20)
 
     print("\n[A-2] 総務省 選挙情報ページを直接 fetch")
     elections = update_from_soumu(client, elections)
+    time.sleep(20)
 
     print("\n[A-3] 都道府県選管ページを直接 fetch")
     elections = update_from_pref_senkans(client, elections)
+    time.sleep(20)
 
     print("\n[B-1] 予定選挙を web_search で検索")
     elections = update_scheduled_elections(client, elections)
+    time.sleep(20)
 
     print("\n[B-2] 補選・急選を web_search で補完")
     elections = update_unexpected_via_search(client, elections)
