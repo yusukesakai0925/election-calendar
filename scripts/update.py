@@ -204,6 +204,7 @@ def update_all_elections(client: anthropic.Anthropic, existing: dict) -> dict:
     year = datetime.now(JST).year
     existing_names = [e["name"] for e in existing.get("elections", [])]
 
+    next_month = (datetime.now(JST).replace(day=1) + timedelta(days=32)).strftime("%Y年%m月")
     prompt = f"""今日は{today_str}です。日本の今後の選挙日程を web_search で調べてください。
 
 【検索してほしいこと】
@@ -212,10 +213,14 @@ def update_all_elections(client: anthropic.Anthropic, existing: dict) -> dict:
 3. 「参院選 日程」「衆院選 日程」
 4. 「補欠選挙 {year} 日程」「急選 {year}」
 5. 「{datetime.now(JST).strftime('%Y年%m月')} 補欠選挙 告示」
+6. 「{next_month} 補欠選挙 告示」
+7. 「区長選 {year} {year + 1} 日程」「東京23区 区長選」
+8. 「区議選 {year} 補欠選挙」
 
 【重要】
 - 直近〜2年以内に実施予定のすべての選挙を網羅してください
-- 補欠選挙・急選は特に漏れなく拾ってください（市議・町議の小規模なものも含む）
+- 市長選だけでなく区長選（東京23区など特別区）も必ず検索してください
+- 市議選・区議選の補欠選挙も漏れなく拾ってください（小規模なものも含む）
 - 以下の選挙はすでに登録済みなので出力不要（同名・類似名も不要）:
 {json.dumps(existing_names, ensure_ascii=False, indent=2)}
 
