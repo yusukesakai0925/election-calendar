@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-12T06:23:38.688434+09:00",
+  "lastUpdated": "2026-04-13T06:25:23.332568+09:00",
   "elections": [
     {
       "id": "toyonaka-mayor-2026",
@@ -50,7 +50,7 @@
       "competitiveness": {
         "level": "high",
         "label": "激戦",
-        "note": "現職玉城知事とオール沖縄 vs 保守系新人古謝氏の事実上の一騎打ち、木下氏も出馬予定"
+        "note": "現職玉城デニー氏と古謝玄太氏、木下隆政氏の3人が立候補、玉城氏の3選を巡る対決構図"
       }
     },
     {
@@ -101,7 +101,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "2027年4月前半戦予定、具体的な日程・候補者情報未確定"
+        "note": "2027年4月実施予定、具体的な日程・定数情報は未発表"
       }
     },
     {
@@ -150,7 +150,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "衆議院小選挙区289+比例代表176、次回総選挙は2030年予定（任期満了に基づく）"
+        "note": "2030年予定の衆議院総選挙、今後の政局展開により情勢は変わる可能性あり"
       }
     },
     {
@@ -264,7 +264,7 @@
       "electionDayLatest": "2026-04-12",
       "electionDayLabel": "投開票日：2026年4月12日",
       "certainty": "confirmed",
-      "status": "scheduled",
+      "status": "completed",
       "isUnexpected": false,
       "source": "https://www.city.tama.lg.jp/shisei/gyouseiiinkai/senkyo/oshirase/1019074.html",
       "note": "多摩市議会議員補欠選挙（定数4名）と同時実施",
@@ -290,7 +290,7 @@
       "electionDayLatest": "2026-04-12",
       "electionDayLabel": "投開票日：2026年4月12日",
       "certainty": "confirmed",
-      "status": "scheduled",
+      "status": "completed",
       "isUnexpected": true,
       "source": "https://www.city.tama.lg.jp/shisei/gyouseiiinkai/senkyo/oshirase/1019074.html",
       "note": "4議席の補欠選挙。多摩市長選と同時実施",
@@ -324,7 +324,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "定数3、4月12日告示・19日投票、候補者情報未発表"
+        "note": "2026年4月19日投票予定、定数欠員3人、立候補者数は告示日以降に確定"
       }
     },
     {
@@ -345,11 +345,11 @@
       "isUnexpected": false,
       "source": "https://ja.wikipedia.org/wiki/%E7%AC%AC28%E5%9B%9E%E5%8F%82%E8%AD%B0%E9%99%A2%E8%AD%B0%E5%93%A1%E9%80%9A%E5%B8%B8%E9%81%B8%E6%8C%99",
       "note": "2022年選出議員の改選期。参議院議員の任期は6年で3年ごとに半数改選",
-      "seats": 248,
+      "seats": 124,
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "参議院通常選挙、2028年7月予定（半数改選）"
+        "note": "2028年7月実施予定、現時点で具体的な候補者情報は未発表"
       }
     },
     {
@@ -373,8 +373,9 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "情報収集不足"
-      }
+        "note": "2026年4月19日投票予定、定数欠員5人、詳細情報は限定的"
+      },
+      "seats": 5
     },
     {
       "id": "okinawa-pref-assembly-uruma-2026",
@@ -398,7 +399,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "県議補選、知事選と同日の9月13日投票予定"
+        "note": "うるま市選挙区、2026年9月13日投票予定、詳細情報不足"
       }
     },
     {
@@ -423,7 +424,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "県議補選、知事選と同日の9月13日投票予定"
+        "note": "島尻・南城市選挙区、2026年9月13日投票予定、詳細情報不足"
       }
     },
     {
