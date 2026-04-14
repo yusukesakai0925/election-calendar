@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-14T06:38:56.245550+09:00",
+  "lastUpdated": "2026-04-15T06:42:27.865656+09:00",
   "elections": [
     {
       "id": "toyonaka-mayor-2026",
@@ -50,7 +50,7 @@
       "competitiveness": {
         "level": "high",
         "label": "激戦",
-        "note": "現職玉城デニー氏と古謝玄太氏、木下隆政氏の3人が立候補、玉城氏の3選を巡る対決構図"
+        "note": "現職玉城知事と自民系古謝氏の実質的な一騎打ち、政治団体代表も立候補で三つ巴"
       }
     },
     {
@@ -101,7 +101,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "2027年4月実施予定、具体的な日程・定数情報は未発表"
+        "note": "2027年4月予定だが詳細未発表"
       }
     },
     {
@@ -150,7 +150,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "2030年予定の衆議院総選挙、今後の政局展開により情勢は変わる可能性あり"
+        "note": "2030年予定で詳細不明、定数は現在の465人"
       }
     },
     {
@@ -322,10 +322,11 @@
       "note": "3議席の補欠選挙。豊中市長選と同時実施",
       "seats": 3,
       "competitiveness": {
-        "level": "unknown",
-        "label": "不明",
-        "note": "2026年4月19日投票予定、定数欠員3人、立候補者数は告示日以降に確定"
-      }
+        "level": "high",
+        "label": "激戦",
+        "note": "定数3に対し4人が立候補"
+      },
+      "candidateCount": 4
     },
     {
       "id": "sangiin-28-2028",
@@ -349,7 +350,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "2028年7月実施予定、現時点で具体的な候補者情報は未発表"
+        "note": "2028年7月予定で現時点では候補者未確定"
       }
     },
     {
@@ -371,11 +372,12 @@
       "source": "公職選挙法第33条の2（春の補選）",
       "note": "2026年春の統一補欠選挙",
       "competitiveness": {
-        "level": "unknown",
-        "label": "不明",
-        "note": "2026年4月19日投票予定、定数欠員5人、詳細情報は限定的"
+        "level": "high",
+        "label": "激戦",
+        "note": "定数5に対し元新6人が立候補"
       },
-      "seats": 5
+      "seats": 5,
+      "candidateCount": 6
     },
     {
       "id": "okinawa-pref-assembly-uruma-2026",
@@ -399,7 +401,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "うるま市選挙区、2026年9月13日投票予定、詳細情報不足"
+        "note": "2026年9月13日投開票予定だが詳細情報不足"
       }
     },
     {
@@ -424,7 +426,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "島尻・南城市選挙区、2026年9月13日投票予定、詳細情報不足"
+        "note": "2026年9月13日投開票予定だが詳細情報不足"
       }
     },
     {
