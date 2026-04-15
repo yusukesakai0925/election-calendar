@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-15T06:42:27.865656+09:00",
+  "lastUpdated": "2026-04-16T06:43:01.156170+09:00",
   "elections": [
     {
       "id": "toyonaka-mayor-2026",
@@ -50,7 +50,7 @@
       "competitiveness": {
         "level": "high",
         "label": "激戦",
-        "note": "現職玉城知事と自民系古謝氏の実質的な一騎打ち、政治団体代表も立候補で三つ巴"
+        "note": "現職玉城デニー知事と自民支持の古謝玄太氏、木下隆政氏が立候補予定で、辺野古新基地建設問題が争点の激戦"
       }
     },
     {
@@ -101,7 +101,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "2027年4月予定だが詳細未発表"
+        "note": "2027年4月開催予定だが、具体的な日程・定数等の詳細はまだ確定していない"
       }
     },
     {
@@ -150,7 +150,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "2030年予定で詳細不明、定数は現在の465人"
+        "note": "2030年以降の予定選挙であり、まだ候補者情報や詳細は不明"
       }
     },
     {
@@ -322,9 +322,9 @@
       "note": "3議席の補欠選挙。豊中市長選と同時実施",
       "seats": 3,
       "competitiveness": {
-        "level": "high",
-        "label": "激戦",
-        "note": "定数3に対し4人が立候補"
+        "level": "medium",
+        "label": "やや激戦",
+        "note": "定数3に対し複数候補の立候補が予想され、2026年4月19日投開票予定"
       },
       "candidateCount": 4
     },
@@ -346,11 +346,11 @@
       "isUnexpected": false,
       "source": "https://ja.wikipedia.org/wiki/%E7%AC%AC28%E5%9B%9E%E5%8F%82%E8%AD%B0%E9%99%A2%E8%AD%B0%E5%93%A1%E9%80%9A%E5%B8%B8%E9%81%B8%E6%8C%99",
       "note": "2022年選出議員の改選期。参議院議員の任期は6年で3年ごとに半数改選",
-      "seats": 124,
+      "seats": 121,
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "2028年7月予定で現時点では候補者未確定"
+        "note": "2028年7月投票予定の参院通常選挙で、半数121人改選予定だが詳細未定"
       }
     },
     {
@@ -374,7 +374,7 @@
       "competitiveness": {
         "level": "high",
         "label": "激戦",
-        "note": "定数5に対し元新6人が立候補"
+        "note": "定数5に対し6人が立候補し、元新6人による争い"
       },
       "seats": 5,
       "candidateCount": 6
@@ -386,8 +386,8 @@
       "level": "pref",
       "region": "うるま市",
       "prefecture": "沖縄県",
-      "announcementDate": null,
-      "announcementDateLabel": "告示日未定",
+      "announcementDate": "2026-08-27",
+      "announcementDateLabel": "告示日：2026年8月27日",
       "electionDay": "2026-09-13",
       "electionDayEarliest": null,
       "electionDayLatest": null,
@@ -401,7 +401,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "2026年9月13日投開票予定だが詳細情報不足"
+        "note": "2026年9月13日投開票予定の沖縄県議補選だが、定数・候補者数の詳細は不明"
       }
     },
     {
@@ -411,8 +411,8 @@
       "level": "pref",
       "region": "南城市・島尻郡",
       "prefecture": "沖縄県",
-      "announcementDate": null,
-      "announcementDateLabel": "告示日未定",
+      "announcementDate": "2026-08-27",
+      "announcementDateLabel": "告示日：2026年8月27日",
       "electionDay": "2026-09-13",
       "electionDayEarliest": null,
       "electionDayLatest": null,
@@ -426,7 +426,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "2026年9月13日投開票予定だが詳細情報不足"
+        "note": "2026年9月13日投開票予定の沖縄県議補選だが、定数・候補者数の詳細は不明"
       }
     },
     {
