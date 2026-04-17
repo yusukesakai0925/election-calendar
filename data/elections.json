@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-17T06:35:18.089821+09:00",
+  "lastUpdated": "2026-04-18T06:33:31.901300+09:00",
   "elections": [
     {
       "id": "toyonaka-mayor-2026",
@@ -50,7 +50,7 @@
       "competitiveness": {
         "level": "high",
         "label": "激戦",
-        "note": "現職・玉城デニー氏と新人・古謝玄太氏、木下隆政氏の3人が立候補し、辺野古問題を中心に対立する構図"
+        "note": "現職玉城デニー氏（3期目狙い）と新人古謝玄太氏（自民推薦）、政治団体代表木下隆政氏の3人立候補で激戦"
       }
     },
     {
@@ -101,7 +101,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "2027年4月実施予定だが具体的な日程や定数は未発表"
+        "note": "2027年4月実施予定だが、具体的な日程や定数、候補者情報はまだ未発表"
       }
     },
     {
@@ -146,11 +146,11 @@
       "isUnexpected": false,
       "source": "https://www.city.nagasaki.lg.jp/page/5931.html",
       "note": "第51回選挙（2026年2月投開票）から4年後に任期満了（2030年2月頃）。解散がなければそれ以前に選挙。",
-      "seats": 289,
+      "seats": 465,
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "2030年の任期満了に伴う予定選挙だが、政権交代や解散の可能性があり未確定"
+        "note": "2030年の選挙は予定段階。現時点では立候補者情報なし"
       }
     },
     {
@@ -324,7 +324,7 @@
       "competitiveness": {
         "level": "medium",
         "label": "やや激戦",
-        "note": "定数3に対し4人が立候補、市長選と同日開票で市長選の結果によって議会構成が変わる可能性"
+        "note": "定数3に対し複数候補が立候補予定。市長選との同時開催で市政の方向性が争点"
       },
       "candidateCount": 4
     },
@@ -346,11 +346,11 @@
       "isUnexpected": false,
       "source": "https://ja.wikipedia.org/wiki/%E7%AC%AC28%E5%9B%9E%E5%8F%82%E8%AD%B0%E9%99%A2%E8%AD%B0%E5%93%A1%E9%80%9A%E5%B8%B8%E9%81%B8%E6%8C%99",
       "note": "2022年選出議員の改選期。参議院議員の任期は6年で3年ごとに半数改選",
-      "seats": 121,
+      "seats": 124,
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "2028年の参院通常選挙は予定段階で、具体的な情報は未発表"
+        "note": "2028年実施予定の参院通常選挙。現時点では候補者情報未発表"
       }
     },
     {
@@ -372,9 +372,9 @@
       "source": "公職選挙法第33条の2（春の補選）",
       "note": "2026年春の統一補欠選挙",
       "competitiveness": {
-        "level": "medium",
-        "label": "やや激戦",
-        "note": "定数5に対し6人（元新6人）が立候補、市長選と同日で市政の方向性が反映される補選"
+        "level": "high",
+        "label": "激戦",
+        "note": "定数5に対し6人の元新が立候補。複数の欠員補充で競争が激しい"
       },
       "seats": 5,
       "candidateCount": 6
@@ -399,10 +399,11 @@
       "note": "沖縄県知事選と同日投開票予定",
       "seats": 1,
       "competitiveness": {
-        "level": "unknown",
-        "label": "不明",
-        "note": "県知事選と同日の9月13日投開票予定だが、立候補者情報は未発表"
-      }
+        "level": "medium",
+        "label": "やや激戦",
+        "note": "2025年4月27日投開票時点では定数1に対し複数立候補あり"
+      },
+      "candidateCount": 2
     },
     {
       "id": "okinawa-pref-assembly-shimajiri-nanjo-2026",
@@ -426,7 +427,7 @@
       "competitiveness": {
         "level": "unknown",
         "label": "不明",
-        "note": "県知事選と同日の9月13日投開票予定だが、立候補者情報は未発表"
+        "note": "島尻・南城市選挙区の補欠選挙。定数1だが現時点で候補者情報は限定的"
       }
     },
     {
