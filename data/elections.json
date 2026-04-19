@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-18T06:33:31.901300+09:00",
+  "lastUpdated": "2026-04-20T06:26:02.093006+09:00",
   "elections": [
     {
       "id": "toyonaka-mayor-2026",
@@ -15,7 +15,7 @@
       "electionDayLatest": "2026-04-19",
       "electionDayLabel": "投開票日：2026年4月19日",
       "certainty": "confirmed",
-      "status": "scheduled",
+      "status": "completed",
       "isUnexpected": false,
       "source": "https://www.city.toyonaka.osaka.jp/joho/sanka/senkyo/sennkyoyotei.html",
       "note": "豊中市議会議員補欠選挙（定数3名）と同時実施",
@@ -316,7 +316,7 @@
       "electionDayLatest": "2026-04-19",
       "electionDayLabel": "投開票日：2026年4月19日",
       "certainty": "confirmed",
-      "status": "scheduled",
+      "status": "completed",
       "isUnexpected": true,
       "source": "https://www.city.toyonaka.osaka.jp/joho/sanka/senkyo/sennkyoyotei.html",
       "note": "3議席の補欠選挙。豊中市長選と同時実施",
@@ -367,7 +367,7 @@
       "electionDayLatest": null,
       "electionDayLabel": "2026年4月19日",
       "certainty": "confirmed",
-      "status": "scheduled",
+      "status": "completed",
       "isUnexpected": true,
       "source": "公職選挙法第33条の2（春の補選）",
       "note": "2026年春の統一補欠選挙",
