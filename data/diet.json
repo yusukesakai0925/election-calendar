@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-21T06:38:44.452506+09:00",
+  "lastUpdated": "2026-04-22T06:38:11.134775+09:00",
   "sessions": [
     {
       "id": "220th-regular",
@@ -22,12 +22,7 @@
       "openDate": "2026-02-18",
       "closeDate": "2026-07-17",
       "closeDateUncertain": false,
-      "milestones": [
-        {
-          "date": "2026-02-18",
-          "label": "首相指名選挙"
-        }
-      ]
+      "milestones": []
     },
     {
       "id": "221st-regular",
