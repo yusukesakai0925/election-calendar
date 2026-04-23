@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-23T06:42:46.385374+09:00",
+  "lastUpdated": "2026-04-24T06:42:11.135332+09:00",
   "sessions": [
     {
       "id": "220th-regular",
@@ -22,7 +22,16 @@
       "openDate": "2026-02-18",
       "closeDate": "2026-07-17",
       "closeDateUncertain": false,
-      "milestones": []
+      "milestones": [
+        {
+          "date": "2026-02-18",
+          "label": "衆議院議長・副議長選出、首相指名選挙"
+        },
+        {
+          "date": "2026-02-20",
+          "label": "首相施政方針演説など政府四演説"
+        }
+      ]
     },
     {
       "id": "221st-regular",
