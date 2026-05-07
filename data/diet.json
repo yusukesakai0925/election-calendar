@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-07T06:52:31.776858+09:00",
+  "lastUpdated": "2026-05-08T06:46:12.129778+09:00",
   "sessions": [
     {
       "id": "220th-regular",
@@ -22,7 +22,16 @@
       "openDate": "2026-02-18",
       "closeDate": "2026-07-17",
       "closeDateUncertain": false,
-      "milestones": []
+      "milestones": [
+        {
+          "date": "2026-02-18",
+          "label": "首相指名選挙"
+        },
+        {
+          "date": "2026-02-20",
+          "label": "施政方針演説"
+        }
+      ]
     },
     {
       "id": "221st-regular",
